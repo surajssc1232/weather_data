@@ -23,8 +23,8 @@ public class WeatherResponse {
         return main;
     }
 
-    public void setMain(MainData main) {
-        this.main = main;
+    public void setMain(MainData main2) {
+        this.main = main2;
     }
 
     public List<WeatherData> getWeather() {
@@ -140,6 +140,14 @@ public class WeatherResponse {
 
         public void setLon(double lon) {
             this.lon = lon;
+        }
+    }
+
+    public class Main {
+
+        public void setTemp(double d) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'setTemp'");
         }
     }
 }

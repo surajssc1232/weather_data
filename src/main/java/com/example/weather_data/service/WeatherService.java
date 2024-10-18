@@ -15,17 +15,28 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.time.temporal.ChronoUnit;
+import org.springframework.core.env.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class WeatherService {
+    private static final Logger logger = LoggerFactory.getLogger(WeatherService.class);
+
     private final RestTemplate restTemplate;
     private final String apiKey;
 
     @Autowired
-    public WeatherService(RestTemplate restTemplate, @Value("${openweathermap.api.key}") String apiKey) {
+    public WeatherService(RestTemplate restTemplate, Environment env) {
         this.restTemplate = restTemplate;
-        this.apiKey = apiKey;
+        String tempApiKey = env.getProperty("OPENWEATHERMAP_API_KEY");
+        if (tempApiKey == null || tempApiKey.isEmpty()) {
+            logger.error("OPENWEATHERMAP_API_KEY is not set in the environment");
+            tempApiKey = "API_KEY_NOT_SET";
+        } else {
+            logger.info("OPENWEATHERMAP_API_KEY successfully loaded");
+        }
+        this.apiKey = tempApiKey;
     }
 
     private final String url = "https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}";
