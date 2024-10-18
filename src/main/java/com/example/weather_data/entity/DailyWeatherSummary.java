@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
+@Table(name = "daily_weather_summaries")
 public class DailyWeatherSummary {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -89,5 +90,21 @@ public class DailyWeatherSummary {
 
     public void setDataPointCount(int dataPointCount) {
         this.dataPointCount = dataPointCount;
+    }
+
+    // Add a toString method for easier debugging
+    @Override
+    public String toString() {
+        return "DailyWeatherSummary{" +
+                "id=" + id +
+                ", city='" + city + '\'' +
+                ", date=" + date +
+                ", averageTemp=" + averageTemp +
+                ", maxTemp=" + maxTemp +
+                ", minTemp=" + minTemp +
+                ", dominantCondition='" + dominantCondition + '\'' +
+                ", humidity=" + humidity +
+                ", dataPointCount=" + dataPointCount +
+                '}';
     }
 }

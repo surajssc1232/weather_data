@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
@@ -74,6 +75,7 @@ public class WeatherService {
         return kelvin - 273.15;
     }
 
+    @Transactional
     public void processWeatherData(WeatherResponse response) {
         if (response != null && response.getMain() != null && !response.getWeather().isEmpty()) {
             LocalDate today = LocalDate.now();
@@ -109,6 +111,7 @@ public class WeatherService {
 
             summary.setHumidity(response.getMain().getHumidity());
             repository.save(summary);
+            System.out.println("Saved daily summary: " + summary);
         }
     }
 
@@ -164,10 +167,14 @@ public class WeatherService {
         Map<String, Long> conditionCounts = summaries.stream()
                 .collect(Collectors.groupingBy(DailyWeatherSummary::getDominantCondition, Collectors.counting()));
 
-        String dominantCondition = conditionCounts.entrySet().stream()
+        Map.Entry<String, Long> dominantConditionEntry = conditionCounts.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("Unknown");
+                .orElse(null);
+
+        String dominantCondition = dominantConditionEntry != null ? dominantConditionEntry.getKey() : "Unknown";
+        String dominantConditionReason = dominantConditionEntry != null 
+            ? String.format("Occurred %d out of %d times", dominantConditionEntry.getValue(), summaries.size())
+            : "No data available";
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("date", date);
@@ -175,6 +182,7 @@ public class WeatherService {
         stats.put("maxTemp", String.format("%.2f", tempStats.getMax()));
         stats.put("minTemp", String.format("%.2f", tempStats.getMin()));
         stats.put("dominantCondition", dominantCondition);
+        stats.put("dominantConditionReason", dominantConditionReason);
 
         return stats;
     }
@@ -186,10 +194,6 @@ public class WeatherService {
         System.out.println("Maximum Temperature: " + stats.get("maxTemp") + "°C");
         System.out.println("Minimum Temperature: " + stats.get("minTemp") + "°C");
         System.out.println("Dominant Weather Condition: " + stats.get("dominantCondition"));
-    }
-
-    public List<DailyWeatherSummary> getDailySummaries(LocalDate date) {
-        return repository.findByDate(date);
     }
 
     public Map<String, Map<String, Object>> getAllWeatherStats(LocalDate date, List<String> cities) {
@@ -232,5 +236,9 @@ public class WeatherService {
                     );
                 }
             ));
+    }
+
+    public List<DailyWeatherSummary> getDailySummaries(LocalDate date) {
+        return repository.findByDate(date);
     }
 }

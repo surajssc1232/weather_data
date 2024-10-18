@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Weather Summary</title>
+    <title>Daily Weather Summary</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
         .grid-container {
@@ -29,7 +29,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Weather Summary for <span th:text="${#temporals.format(date, 'dd MMMM yyyy')}"></span></h1>
+        <h1>Daily Weather Summary for <span th:text="${#temporals.format(date, 'dd MMMM yyyy')}"></span></h1>
         <div class="grid-container">
             <div th:each="summary : ${summaries}" class="city-box">
                 <div class="city-name" th:text="${summary.city}"></div>
@@ -41,11 +41,13 @@
                 <div class="weather-info">Data Points: <span th:text="${summary.dataPointCount}"></span></div>
             </div>
         </div>
+        <div class="date-navigation">
+            <a th:href="@{/weather/daily-summary(date=${previousDate})}" class="btn">&lt; Previous Day</a>
+            <a th:href="@{/weather/daily-summary(date=${nextDate})}" class="btn">Next Day &gt;</a>
+        </div>
     </div>
     <script th:inline="javascript">
-        setTimeout(function() {
-            location.reload();
-        }, 300000); // Refresh every 5 minutes
+        // Add any JavaScript for interactivity here
     </script>
 </body>
 </html>
