@@ -1,6 +1,6 @@
 # Weather Data Application
 
-This is a Spring Boot application that provides weather data through a RESTful API.
+This is a Spring Boot application that provides weather data through a RESTful API. It fetches data from OpenWeatherMap and offers various features including weather alerts, daily summaries, and air quality information.
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ Before you begin, ensure you have met the following requirements:
 * Maven 3.6 or later
 * Git
 * An IDE of your choice (e.g., IntelliJ IDEA, Eclipse, VS Code)
-* A free API key from OpenWeatherMap
+* A valid API key from OpenWeatherMap
 
 ## Setting Up the Project
 
@@ -39,9 +39,22 @@ Before you begin, ensure you have met the following requirements:
 
 The application should now be running on `http://localhost:8080`.
 
+## Features
+
+- Current weather data for Indian metro cities
+- Weather alerts for temperature and humidity thresholds
+- Daily weather summaries
+- Air Quality Index (AQI) data
+- Historical weather data
+- Weather trends analysis
+
 ## API Endpoints
 
 - GET `/api/weather?city={cityName}` - Get current weather data for a specific city
+- GET `/api/weather/stats?date={date}` - Get weather statistics for a specific date
+- GET `/api/weather/trends?startDate={startDate}&endDate={endDate}` - Get weather trends for a date range
+- GET `/api/weather/alerts` - Get active weather alerts
+- GET `/api/weather/aqi` - Get Air Quality Index data for Indian metro cities
 
 ## Running Tests
 
@@ -56,7 +69,6 @@ mvn test
 The application uses the following properties files:
 
 - `src/main/resources/application.properties`: Contains general application configuration
-- `src/main/resources/application-secret.properties`: Contains sensitive information (not tracked by Git)
 
 Make sure to properly configure these files before running the application.
 
