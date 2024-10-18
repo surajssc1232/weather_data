@@ -1,77 +1,20 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Weather Summary</title>
+    <title>Daily Weather Summary</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1a1a2e;
-            color: white;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #61dafb;
-        }
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        .city-box {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .city-name {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #61dafb;
-        }
-        .weather-info {
-            margin-bottom: 5px;
-        }
-        .refresh-info {
-            text-align: center;
-            margin-top: 20px;
-            font-style: italic;
-            color: #61dafb;
-        }
+        /* Add your CSS styles here */
     </style>
 </head>
 <body>
-    <h1>Weather Summary for <span th:text="${#temporals.format(date, 'dd MMMM yyyy')}"></span></h1>
-    <div class="grid-container">
-        <div th:each="summary : ${summaries}" class="city-box">
-            <div class="city-name" th:text="${summary.city}"></div>
-            <div class="weather-info">Average Temperature: <span th:text="${#numbers.formatDecimal(summary.averageTemp, 1, 2)} + '°C'"></span></div>
-            <div class="weather-info">Maximum Temperature: <span th:text="${#numbers.formatDecimal(summary.maxTemp, 1, 2)} + '°C'"></span></div>
-            <div class="weather-info">Minimum Temperature: <span th:text="${#numbers.formatDecimal(summary.minTemp, 1, 2)} + '°C'"></span></div>
-            <div class="weather-info">Dominant Condition: <span th:text="${summary.dominantCondition}"></span></div>
-            <div class="weather-info">Humidity: <span th:text="${summary.humidity} + '%'"></span></div>
-            <div class="weather-info">Data Points: <span th:text="${summary.dataPointCount}"></span></div>
-        </div>
+    <h1>Daily Weather Summary for <span th:text="${date}"></span></h1>
+    <div th:each="summary : ${summaries}" class="summary-box">
+        <h2 th:text="${summary.city}"></h2>
+        <p>Average Temperature: <span th:text="${#numbers.formatDecimal(summary.averageTemp, 1, 1)}">°C</span></p>
+        <p>Max Temperature: <span th:text="${#numbers.formatDecimal(summary.maxTemp, 1, 1)}">°C</span></p>
+        <p>Min Temperature: <span th:text="${#numbers.formatDecimal(summary.minTemp, 1, 1)}">°C</span></p>
+        <p>Dominant Condition: <span th:text="${summary.dominantCondition}"></span></p>
+        <p>Humidity: <span th:text="${summary.humidity}">%</span></p>
     </div>
-    <div class="refresh-info">
-        <p>Next update in <span id="countdown">300</span> seconds</p>
-    </div>
-    <script th:inline="javascript">
-        function updateCountdown() {
-            var countdownElement = document.getElementById('countdown');
-            var seconds = parseInt(countdownElement.textContent);
-            if (seconds > 0) {
-                countdownElement.textContent = seconds - 1;
-                setTimeout(updateCountdown, 1000);
-            } else {
-                location.reload();
-            }
-        }
-
-        setTimeout(updateCountdown, 1000);
-    </script>
 </body>
 </html>

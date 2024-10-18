@@ -8,10 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -23,8 +20,12 @@ import java.util.Map;
 @Controller
 public class WeatherController {
 
+    private final WeatherService weatherService;
+
     @Autowired
-    private WeatherService weatherService;
+    public WeatherController(WeatherService weatherService) {
+        this.weatherService = weatherService;
+    }
 
     @GetMapping("/weather/{city}")
     public String getCurrentWeather(@PathVariable String city, Model model) {
@@ -58,11 +59,24 @@ public class WeatherController {
         return "weather-summary";
     }
 
-    @GetMapping("/weather/alerts")
-    @ResponseBody
-    public ResponseEntity<List<String>> getActiveAlerts() {
-        List<String> alerts = weatherService.getActiveAlerts();
-        return ResponseEntity.ok(alerts);
+    @GetMapping("/weather/trends")
+    public String getWeatherTrends(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+                                   Model model) {
+        startDate = (startDate != null) ? startDate : LocalDate.now().minusDays(7);
+        endDate = (endDate != null) ? endDate : LocalDate.now();
+        Map<LocalDate, Map<String, Object>> trends = weatherService.getWeatherTrends(startDate, endDate);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("trends", trends);
+        return "weather-trends";
+    }
+
+    @GetMapping({"/weather/alerts", "/alerts"})
+    public String showAlerts(Model model) {
+        List<String> activeAlerts = weatherService.getActiveAlerts();
+        model.addAttribute("alerts", activeAlerts);
+        return "weather-alerts";
     }
 
     @GetMapping("/weather/clear-alerts")

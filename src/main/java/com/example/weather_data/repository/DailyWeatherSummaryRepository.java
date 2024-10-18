@@ -16,4 +16,7 @@ public interface DailyWeatherSummaryRepository extends JpaRepository<DailyWeathe
 
     @Query("SELECT MAX(d.date) FROM DailyWeatherSummary d WHERE d.date <= :date")
     LocalDate findClosestDateWithData(@Param("date") LocalDate date);
+
+    @Query("SELECT MIN(d.date) FROM DailyWeatherSummary d")
+    LocalDate findEarliestDate();
 }

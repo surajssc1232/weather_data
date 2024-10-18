@@ -18,9 +18,15 @@ import java.util.stream.Collectors;
 
 @Service
 public class WeatherService {
-    @Value("${OPENWEATHERMAP_API_KEY:default-key}")
-    private String apiKey;
-    
+    private final RestTemplate restTemplate;
+    private final String apiKey;
+
+    @Autowired
+    public WeatherService(RestTemplate restTemplate, @Value("${openweathermap.api.key}") String apiKey) {
+        this.restTemplate = restTemplate;
+        this.apiKey = apiKey;
+    }
+
     private final String url = "https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}";
     private final List<String> indianMetros = Arrays.asList("Delhi", "Mumbai", "Chennai", "Bengaluru", "Kolkata", "Hyderabad");
     private final Map<String, String> cityMapping = Map.of("Bangalore", "Bengaluru");
@@ -28,21 +34,21 @@ public class WeatherService {
     @Autowired
     private DailyWeatherSummaryRepository repository;
 
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @Value("${weather.alert.temp.threshold}")
+    @Value("${weather.alert.temp.threshold:35.0}")
     private double tempThreshold;
 
-    @Value("${weather.alert.humidity.threshold}")
+    @Value("${weather.alert.humidity.threshold:80}")
     private int humidityThreshold;
 
-    @Value("${weather.alert.consecutive.threshold}")
+    @Value("${weather.alert.consecutive.threshold:2}")
     private int consecutiveThreshold;
 
     private Map<String, Integer> consecutiveBreaches = new HashMap<>();
 
     private List<String> activeAlerts = new ArrayList<>();
+
+    private Map<String, Double> lastTemperature = new HashMap<>();
+    private Map<String, Integer> lastHumidity = new HashMap<>();
 
     @Scheduled(fixedRateString = "${weather.fetch.interval}")
     public void fetchWeatherDataForIndianMetros() {
@@ -122,29 +128,33 @@ public class WeatherService {
         
         boolean alertTriggered = false;
         
-        if (currentTemp > tempThreshold) {
-            int breaches = consecutiveBreaches.getOrDefault(city, 0) + 1;
-            consecutiveBreaches.put(city, breaches);
-            
-            if (breaches >= consecutiveThreshold) {
-                String alert = "ALERT: Temperature in " + city + " has exceeded " + tempThreshold + 
-                               "°C for " + breaches + " consecutive updates. Current temperature: " + 
-                               String.format("%.2f", currentTemp) + "°C";
+        // Check temperature change
+        if (lastTemperature.containsKey(city)) {
+            double tempDiff = currentTemp - lastTemperature.get(city);
+            if (Math.abs(tempDiff) >= 5 || tempDiff > 1) { // Alert if temperature changes by 5°C or more, or increases by more than 1°C
+                String alert = String.format("%s: Temperature has changed by %.2f°C. Current temperature: %.2f°C", 
+                                             city, tempDiff, currentTemp);
                 System.out.println(alert);
                 activeAlerts.add(alert);
                 alertTriggered = true;
             }
-        } else {
-            consecutiveBreaches.put(city, 0);
         }
         
-        if (currentHumidity > humidityThreshold) {
-            String alert = "ALERT: Humidity in " + city + " has exceeded " + humidityThreshold + 
-                           "%. Current humidity: " + currentHumidity + "%";
-            System.out.println(alert);
-            activeAlerts.add(alert);
-            alertTriggered = true;
+        // Check humidity change
+        if (lastHumidity.containsKey(city)) {
+            int humidityDiff = currentHumidity - lastHumidity.get(city);
+            if (Math.abs(humidityDiff) >= 20 || humidityDiff > 2) { // Alert if humidity changes by 20% or more, or increases by more than 2%
+                String alert = String.format("%s: Humidity has changed by %d%%. Current humidity: %d%%", 
+                                             city, humidityDiff, currentHumidity);
+                System.out.println(alert);
+                activeAlerts.add(alert);
+                alertTriggered = true;
+            }
         }
+        
+        // Update last known values
+        lastTemperature.put(city, currentTemp);
+        lastHumidity.put(city, currentHumidity);
         
         return alertTriggered;
     }
@@ -240,5 +250,32 @@ public class WeatherService {
 
     public List<DailyWeatherSummary> getDailySummaries(LocalDate date) {
         return repository.findByDate(date);
+    }
+
+    public Map<LocalDate, Map<String, Object>> getWeatherTrends(LocalDate startDate, LocalDate endDate) {
+        Map<LocalDate, Map<String, Object>> trends = new LinkedHashMap<>();
+        
+        // Get all data from the earliest date in the database up to the end date
+        LocalDate earliestDate = repository.findEarliestDate();
+        if (earliestDate == null || earliestDate.isAfter(startDate)) {
+            earliestDate = startDate;
+        }
+        
+        LocalDate currentDate = earliestDate;
+        while (!currentDate.isAfter(endDate)) {
+            List<DailyWeatherSummary> summaries = getDailySummaries(currentDate);
+            DoubleSummaryStatistics tempStats = summaries.stream()
+                    .mapToDouble(DailyWeatherSummary::getAverageTemp)
+                    .summaryStatistics();
+            
+            Map<String, Object> dailyStats = new HashMap<>();
+            dailyStats.put("averageTemp", tempStats.getAverage());
+            dailyStats.put("maxTemp", tempStats.getMax());
+            dailyStats.put("minTemp", tempStats.getMin());
+            
+            trends.put(currentDate, dailyStats);
+            currentDate = currentDate.plusDays(1);
+        }
+        return trends;
     }
 }
