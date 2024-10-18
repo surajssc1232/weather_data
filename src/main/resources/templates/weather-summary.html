@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Weather Summary</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather Summary for <span th:text="${date}"></span></h1>
+    <table>
+        <tr>
+            <th>City</th>
+            <th>Average Temperature (°C)</th>
+            <th>Max Temperature (°C)</th>
+            <th>Min Temperature (°C)</th>
+            <th>Dominant Condition</th>
+            <th>Humidity (%)</th>
+            <th>Data Points</th>
+        </tr>
+        <tr th:each="summary : ${summaries}">
+            <td th:text="${summary.city}"></td>
+            <td th:text="${#numbers.formatDecimal(summary.averageTemp, 1, 2)}"></td>
+            <td th:text="${#numbers.formatDecimal(summary.maxTemp, 1, 2)}"></td>
+            <td th:text="${#numbers.formatDecimal(summary.minTemp, 1, 2)}"></td>
+            <td th:text="${summary.dominantCondition}"></td>
+            <td th:text="${summary.humidity}"></td>
+            <td th:text="${summary.dataPointCount}"></td>
+        </tr>
+    </table>
+    <p>Next update in <span id="countdown">300</span> seconds</p>
+    <script th:inline="javascript">
+        function updateCountdown() {
+            var countdownElement = document.getElementById('countdown');
+            var seconds = parseInt(countdownElement.textContent);
+            if (seconds > 0) {
+                countdownElement.textContent = seconds - 1;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                location.reload();
+            }
+        }
+
+        setTimeout(updateCountdown, 1000);
+    </script>
+</body>
+</html>

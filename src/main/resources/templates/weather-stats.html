@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Weather Stats for Indian Metros</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .city-box {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .city-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .weather-info {
+            margin-bottom: 5px;
+        }
+        .error {
+            color: red;
+        }
+        .refresh-info {
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather Stats for Indian Metros</h1>
+    <div class="grid-container">
+        <div th:each="entry : ${allStats}" class="city-box">
+            <div class="city-name" th:text="${entry.key}"></div>
+            <div th:if="${entry.value.hasError}" class="error" th:text="${entry.value.errorMessage}"></div>
+            <div th:unless="${entry.value.hasError}">
+                <div class="weather-info">main: <span th:text="${entry.value.main}"></span></div>
+                <div class="weather-info">temp: <span th:text="${entry.value.temp}">°C</span></div>
+                <div class="weather-info">feels_like: <span th:text="${entry.value.feels_like}">°C</span></div>
+                <div class="weather-info">dt: <span th:text="${entry.value.dt}"></span></div>
+            </div>
+        </div>
+    </div>
+    <div class="refresh-info">
+        <p>Next update in <span id="countdown">300</span> seconds</p>
+    </div>
+    <script th:inline="javascript">
+        function updateCountdown() {
+            var countdownElement = document.getElementById('countdown');
+            var seconds = parseInt(countdownElement.textContent);
+            if (seconds > 0) {
+                countdownElement.textContent = seconds - 1;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                location.reload();
+            }
+        }
+
+        setTimeout(updateCountdown, 1000);
+    </script>
+</body>
+</html>
