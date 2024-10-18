@@ -5,13 +5,14 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background-color: #1a1a2e;
+            color: white;
             margin: 0;
             padding: 20px;
         }
         h1 {
             text-align: center;
-            color: #333;
+            color: #61dafb;
         }
         .grid-container {
             display: grid;
@@ -20,7 +21,7 @@
             padding: 20px;
         }
         .city-box {
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -29,18 +30,19 @@
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
-            color: #2c3e50;
+            color: #61dafb;
         }
         .weather-info {
             margin-bottom: 5px;
         }
         .error {
-            color: red;
+            color: #ff6b6b;
         }
         .refresh-info {
             text-align: center;
             margin-top: 20px;
             font-style: italic;
+            color: #61dafb;
         }
     </style>
 </head>
@@ -51,10 +53,10 @@
             <div class="city-name" th:text="${entry.key}"></div>
             <div th:if="${entry.value.hasError}" class="error" th:text="${entry.value.errorMessage}"></div>
             <div th:unless="${entry.value.hasError}">
-                <div class="weather-info">main: <span th:text="${entry.value.main}"></span></div>
-                <div class="weather-info">temp: <span th:text="${entry.value.temp}">°C</span></div>
-                <div class="weather-info">feels_like: <span th:text="${entry.value.feels_like}">°C</span></div>
-                <div class="weather-info">dt: <span th:text="${entry.value.dt}"></span></div>
+                <div class="weather-info">Main: <span th:text="${entry.value.main}"></span></div>
+                <div class="weather-info">Temperature: <span th:text="${entry.value.temp}">°C</span></div>
+                <div class="weather-info">Feels like: <span th:text="${entry.value.feels_like}">°C</span></div>
+                <div class="weather-info">Date/Time: <span th:text="${entry.value.dt}"></span></div>
             </div>
         </div>
     </div>
