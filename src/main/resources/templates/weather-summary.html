@@ -2,8 +2,18 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Weather Summary</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #61dafb;
+        }
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -25,27 +35,43 @@
         .weather-info {
             margin-bottom: 5px;
         }
+        .refresh-info {
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+            color: #61dafb;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Weather Summary for <span th:text="${#temporals.format(date, 'dd MMMM yyyy')}"></span></h1>
-        <div class="grid-container">
-            <div th:each="summary : ${summaries}" class="city-box">
-                <div class="city-name" th:text="${summary.city}"></div>
-                <div class="weather-info">Average Temperature: <span th:text="${#numbers.formatDecimal(summary.averageTemp, 1, 2)} + '°C'"></span></div>
-                <div class="weather-info">Maximum Temperature: <span th:text="${#numbers.formatDecimal(summary.maxTemp, 1, 2)} + '°C'"></span></div>
-                <div class="weather-info">Minimum Temperature: <span th:text="${#numbers.formatDecimal(summary.minTemp, 1, 2)} + '°C'"></span></div>
-                <div class="weather-info">Dominant Condition: <span th:text="${summary.dominantCondition}"></span></div>
-                <div class="weather-info">Humidity: <span th:text="${summary.humidity} + '%'"></span></div>
-                <div class="weather-info">Data Points: <span th:text="${summary.dataPointCount}"></span></div>
-            </div>
+    <h1>Weather Summary for <span th:text="${#temporals.format(date, 'dd MMMM yyyy')}"></span></h1>
+    <div class="grid-container">
+        <div th:each="summary : ${summaries}" class="city-box">
+            <div class="city-name" th:text="${summary.city}"></div>
+            <div class="weather-info">Average Temperature: <span th:text="${#numbers.formatDecimal(summary.averageTemp, 1, 2)} + '°C'"></span></div>
+            <div class="weather-info">Maximum Temperature: <span th:text="${#numbers.formatDecimal(summary.maxTemp, 1, 2)} + '°C'"></span></div>
+            <div class="weather-info">Minimum Temperature: <span th:text="${#numbers.formatDecimal(summary.minTemp, 1, 2)} + '°C'"></span></div>
+            <div class="weather-info">Dominant Condition: <span th:text="${summary.dominantCondition}"></span></div>
+            <div class="weather-info">Humidity: <span th:text="${summary.humidity} + '%'"></span></div>
+            <div class="weather-info">Data Points: <span th:text="${summary.dataPointCount}"></span></div>
         </div>
     </div>
+    <div class="refresh-info">
+        <p>Next update in <span id="countdown">300</span> seconds</p>
+    </div>
     <script th:inline="javascript">
-        setTimeout(function() {
-            location.reload();
-        }, 300000); // Refresh every 5 minutes
+        function updateCountdown() {
+            var countdownElement = document.getElementById('countdown');
+            var seconds = parseInt(countdownElement.textContent);
+            if (seconds > 0) {
+                countdownElement.textContent = seconds - 1;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                location.reload();
+            }
+        }
+
+        setTimeout(updateCountdown, 1000);
     </script>
 </body>
 </html>
