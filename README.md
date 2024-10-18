@@ -12,6 +12,54 @@ Before you begin, ensure you have met the following requirements:
 * An IDE of your choice (e.g., IntelliJ IDEA, Eclipse, VS Code)
 * A valid API key from OpenWeatherMap
 
+### Setting up Prerequisites
+
+#### 1. Install Java Development Kit (JDK)
+
+1. Visit the [Oracle JDK download page](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html) or [OpenJDK](https://adoptopenjdk.net/).
+2. Download the appropriate version for your operating system.
+3. Run the installer and follow the installation wizard.
+4. Set the JAVA_HOME environment variable:
+   - On Windows: 
+     1. Right-click on 'This PC' and select 'Properties'.
+     2. Click on 'Advanced system settings'.
+     3. Click on 'Environment Variables'.
+     4. Under System Variables, click 'New'.
+     5. Set Variable name as 'JAVA_HOME' and Variable value as the path to your JDK installation (e.g., C:\Program Files\Java\jdk-11).
+   - On macOS/Linux:
+     1. Open your shell configuration file (e.g., ~/.bash_profile, ~/.zshrc).
+     2. Add the following line: `export JAVA_HOME=/path/to/your/jdk`
+5. Add Java to your PATH:
+   - On Windows: Add `%JAVA_HOME%\bin` to your Path environment variable.
+   - On macOS/Linux: Add `export PATH=$JAVA_HOME/bin:$PATH` to your shell configuration file.
+6. Verify the installation by opening a new terminal and typing: `java -version`
+
+#### 2. Install Maven
+
+1. Download Maven from the [official Apache Maven site](https://maven.apache.org/download.cgi).
+2. Extract the archive to a directory of your choice.
+3. Set the M2_HOME environment variable:
+   - On Windows: Follow the same steps as for JAVA_HOME, but use 'M2_HOME' as the variable name and the path to your Maven installation as the value.
+   - On macOS/Linux: Add `export M2_HOME=/path/to/maven` to your shell configuration file.
+4. Add Maven to your PATH:
+   - On Windows: Add `%M2_HOME%\bin` to your Path environment variable.
+   - On macOS/Linux: Add `export PATH=$M2_HOME/bin:$PATH` to your shell configuration file.
+5. Verify the installation by opening a new terminal and typing: `mvn -version`
+
+#### 3. Install Git
+
+1. Download Git from the [official Git website](https://git-scm.com/downloads).
+2. Run the installer and follow the installation wizard.
+3. Verify the installation by opening a new terminal and typing: `git --version`
+
+#### 4. Configure Git (Optional)
+
+1. Open a terminal or command prompt.
+2. Set your name: `git config --global user.name "Your Name"`
+3. Set your email: `git config --global user.email "youremail@example.com"`
+
+Now that you have set up Java, Maven, and Git, you can proceed with setting up the project.
+
 ## Setting Up the Project
 
 1. Clone the repository:
