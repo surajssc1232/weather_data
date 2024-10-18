@@ -3,8 +3,6 @@
 <head>
     <title>Weather Trends</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,93 +24,124 @@
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        select {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #61dafb;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
-    <h1>Weather Trends from <span th:text="${startDate}"></span> to <span th:text="${endDate}"></span></h1>
+    <h1>Weather Trends for <span th:text="${#temporals.format(date, 'MMMM d, yyyy')}"></span></h1>
+    <select id="dataTypeSelect" onchange="updateChart()">
+        <option value="temperature">Temperature</option>
+        <option value="humidity">Humidity</option>
+        <option value="aqi">AQI</option>
+    </select>
     <div class="chart-container">
-        <canvas id="temperatureChart"></canvas>
+        <canvas id="weatherChart"></canvas>
     </div>
     <script th:inline="javascript">
-        var trends = /*[[${trends}]]*/ {};
-        console.log("Trends data:", trends);
+        var weatherData = /*[[${weatherData}]]*/ {};
+        var cities = Object.keys(weatherData);
+        var chart;
+        
+        var colorPalette = {
+            'Delhi': 'rgba(255, 99, 132, 0.8)',
+            'Mumbai': 'rgba(54, 162, 235, 0.8)',
+            'Chennai': 'rgba(255, 206, 86, 0.8)',
+            'Bengaluru': 'rgba(75, 192, 192, 0.8)',
+            'Kolkata': 'rgba(153, 102, 255, 0.8)',
+            'Hyderabad': 'rgba(255, 159, 64, 0.8)'
+        };
 
-        var dates = Object.keys(trends);
-        var avgTemps = dates.map(date => trends[date].averageTemp);
-        var maxTemps = dates.map(date => trends[date].maxTemp);
-        var minTemps = dates.map(date => trends[date].minTemp);
+        function updateChart() {
+            var dataType = document.getElementById('dataTypeSelect').value;
+            var ctx = document.getElementById('weatherChart').getContext('2d');
+            
+            var chartData = cities.map(city => ({
+                x: city,
+                y: weatherData[city][dataType]
+            }));
 
-        var ctx = document.getElementById('temperatureChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dates,
-                datasets: [{
-                    label: 'Average Temperature (°C)',
-                    data: dates.map((date, index) => ({x: date, y: avgTemps[index]})),
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: cities,
+                    datasets: [{
+                        label: getLabel(dataType),
+                        data: chartData,
+                        backgroundColor: cities.map(city => colorPalette[city] || 'rgba(97, 218, 251, 0.7)'),
+                        borderColor: cities.map(city => colorPalette[city].replace('0.8', '1') || 'rgba(97, 218, 251, 1)'),
+                        borderWidth: 1
+                    }]
                 },
-                {
-                    label: 'Max Temperature (°C)',
-                    data: dates.map((date, index) => ({x: date, y: maxTemps[index]})),
-                    borderColor: 'rgb(255, 99, 132)',
-                    tension: 0.1
-                },
-                {
-                    label: 'Min Temperature (°C)',
-                    data: dates.map((date, index) => ({x: date, y: minTemps[index]})),
-                    borderColor: 'rgb(54, 162, 235)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 2,
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            displayFormats: {
-                                day: 'YYYY-MM-DD'
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: dataType === 'aqi',
+                            title: {
+                                display: true,
+                                text: getLabel(dataType),
+                                color: 'white'
+                            },
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
                             }
                         },
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        },
-                        ticks: {
-                            color: 'white'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
+                        x: {
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
                         }
                     },
-                    y: {
-                        beginAtZero: false,
-                        title: {
-                            display: true,
-                            text: 'Temperature (°C)'
+                    plugins: {
+                        legend: {
+                            display: false
                         },
-                        ticks: {
-                            color: 'white'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: 'white'
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${getLabel(dataType)}: ${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
                         }
                     }
                 }
+            });
+        }
+
+        function getLabel(dataType) {
+            switch(dataType) {
+                case 'temperature':
+                    return 'Temperature (°C)';
+                case 'humidity':
+                    return 'Humidity (%)';
+                case 'aqi':
+                    return 'Air Quality Index';
+                default:
+                    return '';
             }
-        });
+        }
+
+        // Initial chart creation
+        updateChart();
     </script>
 </body>
 </html>

@@ -4,9 +4,10 @@ import java.util.List;
 
 public class WeatherResponse {
     private String name; // City name
-    private Main main; // Main weather data
-    private List<Weather> weather; // Weather data
+    private MainData main; // Main weather data
+    private List<WeatherData> weather; // Weather data
     private long dt; // Time of data update (Unix timestamp)
+    private Coord coord; // Coordinates
 
     // Getters and Setters
 
@@ -18,19 +19,19 @@ public class WeatherResponse {
         this.name = name;
     }
 
-    public Main getMain() {
+    public MainData getMain() {
         return main;
     }
 
-    public void setMain(Main main) {
+    public void setMain(MainData main) {
         this.main = main;
     }
 
-    public List<Weather> getWeather() {
+    public List<WeatherData> getWeather() {
         return weather;
     }
 
-    public void setWeather(List<Weather> weather) {
+    public void setWeather(List<WeatherData> weather) {
         this.weather = weather;
     }
 
@@ -42,7 +43,15 @@ public class WeatherResponse {
         this.dt = dt;
     }
 
-    public static class Main {
+    public Coord getCoord() {
+        return coord;
+    }
+
+    public void setCoord(Coord coord) {
+        this.coord = coord;
+    }
+
+    public static class MainData {
         private double temp; // Temperature
         private double feels_like; // Feels like temperature
         private double temp_min; // Minimum temperature
@@ -91,7 +100,7 @@ public class WeatherResponse {
         }
     }
 
-    public static class Weather {
+    public static class WeatherData {
         private String main; // Main weather condition
         private String description; // Weather description
 
@@ -110,6 +119,27 @@ public class WeatherResponse {
 
         public void setDescription(String description) {
             this.description = description;
+        }
+    }
+
+    public static class Coord {
+        private double lat;
+        private double lon;
+
+        public double getLat() {
+            return lat;
+        }
+
+        public void setLat(double lat) {
+            this.lat = lat;
+        }
+
+        public double getLon() {
+            return lon;
+        }
+
+        public void setLon(double lon) {
+            this.lon = lon;
         }
     }
 }

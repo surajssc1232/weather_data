@@ -8,13 +8,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-
+import org.springframework.http.ResponseEntity;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.temporal.ChronoUnit;
 
 @Service
 public class WeatherService {
@@ -49,6 +50,10 @@ public class WeatherService {
 
     private Map<String, Double> lastTemperature = new HashMap<>();
     private Map<String, Integer> lastHumidity = new HashMap<>();
+
+    private final String historicalUrl = "https://api.openweathermap.org/data/2.5/onecall/timemachine?lat={lat}&lon={lon}&dt={timestamp}&appid={apiKey}";
+
+    private final String aqiUrl = "http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={apiKey}";
 
     @Scheduled(fixedRateString = "${weather.fetch.interval}")
     public void fetchWeatherDataForIndianMetros() {
@@ -278,4 +283,136 @@ public class WeatherService {
         }
         return trends;
     }
+
+    public Map<LocalDate, Map<String, Object>> getWeatherTrendsWithHistorical(LocalDate startDate, LocalDate endDate) {
+        Map<LocalDate, Map<String, Object>> trends = new LinkedHashMap<>();
+        
+        LocalDate currentDate = startDate;
+        while (!currentDate.isAfter(endDate)) {
+            Map<String, Object> dailyData = new HashMap<>();
+            for (String city : indianMetros) {
+                WeatherResponse currentWeather = getWeather(city);
+                if (currentWeather != null && currentWeather.getMain() != null) {
+                    double temp = convertKelvinToCelsius(currentWeather.getMain().getTemp());
+                    dailyData.put(city, temp);
+                }
+            }
+            trends.put(currentDate, dailyData);
+            currentDate = currentDate.plusDays(1);
+        }
+        
+        return trends;
+    }
+
+    public Map<String, Double> getWeatherTrendsForToday() {
+        Map<String, Double> trends = new HashMap<>();
+        LocalDate today = LocalDate.now();
+        
+        for (String city : indianMetros) {
+            Optional<DailyWeatherSummary> summary = repository.findByCityAndDate(city, today);
+            if (summary.isPresent()) {
+                trends.put(city, summary.get().getAverageTemp());
+            } else {
+                WeatherResponse currentWeather = getWeather(city);
+                if (currentWeather != null && currentWeather.getMain() != null) {
+                    double temp = convertKelvinToCelsius(currentWeather.getMain().getTemp());
+                    trends.put(city, temp);
+                }
+            }
+        }
+        
+        return trends;
+    }
+
+    public Map<String, Map<String, Double>> getWeatherDataForToday() {
+        Map<String, Map<String, Double>> data = new HashMap<>();
+        LocalDate today = LocalDate.now();
+        
+        for (String city : indianMetros) {
+            Map<String, Double> cityData = new HashMap<>();
+            WeatherResponse weatherResponse = getWeather(city);
+            if (weatherResponse != null && weatherResponse.getMain() != null) {
+                cityData.put("temperature", convertKelvinToCelsius(weatherResponse.getMain().getTemp()));
+                cityData.put("humidity", (double) weatherResponse.getMain().getHumidity());
+                
+                // Fetch AQI data
+                if (weatherResponse.getCoord() != null) {
+                    double lat = weatherResponse.getCoord().getLat();
+                    double lon = weatherResponse.getCoord().getLon();
+                    int aqi = getAQI(lat, lon);
+                    cityData.put("aqi", (double) aqi);
+                }
+            }
+            data.put(city, cityData);
+        }
+        
+        return data;
+    }
+
+    private int getAQI(double lat, double lon) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("lat", lat);
+        params.put("lon", lon);
+        params.put("apiKey", apiKey);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.getForEntity(aqiUrl, Map.class, params);
+            Map<String, Object> responseBody = response.getBody();
+            if (responseBody != null && responseBody.containsKey("list")) {
+                List<Map<String, Object>> list = (List<Map<String, Object>>) responseBody.get("list");
+                if (!list.isEmpty()) {
+                    Map<String, Object> firstItem = list.get(0);
+                    Map<String, Object> main = (Map<String, Object>) firstItem.get("main");
+                    return (int) main.get("aqi");
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error fetching AQI data: " + e.getMessage());
+        }
+        return -1; // Return -1 if AQI data is not available
+    }
+
+    public Map<String, Double> getCityWeatherData(String city) {
+        Map<String, Double> cityData = new HashMap<>();
+        WeatherResponse weatherResponse;
+
+        if (indianMetros.contains(city) || cityMapping.containsKey(city)) {
+            weatherResponse = getWeather(city);
+        } else {
+            // For non-metro cities, make a direct API call
+            weatherResponse = getWeatherForNonMetroCity(city);
+        }
+
+        if (weatherResponse != null && weatherResponse.getMain() != null) {
+            cityData.put("temperature", convertKelvinToCelsius(weatherResponse.getMain().getTemp()));
+            cityData.put("humidity", (double) weatherResponse.getMain().getHumidity());
+            
+            if (weatherResponse.getCoord() != null) {
+                double lat = weatherResponse.getCoord().getLat();
+                double lon = weatherResponse.getCoord().getLon();
+                int aqi = getAQI(lat, lon);
+                cityData.put("aqi", (double) aqi);
+            }
+        }
+        return cityData;
+    }
+
+    private WeatherResponse getWeatherForNonMetroCity(String city) {
+        Map<String, String> params = new HashMap<>();
+        params.put("city", city);
+        params.put("apiKey", apiKey);
+
+        try {
+            return restTemplate.getForObject(url, WeatherResponse.class, params);
+        } catch (Exception e) {
+            System.out.println("Error fetching weather data for " + city + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    public boolean isValidCity(String city) {
+        // We'll consider any non-empty string as a potentially valid city name
+        return city != null && !city.trim().isEmpty();
+    }
+
 }

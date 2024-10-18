@@ -60,15 +60,12 @@ public class WeatherController {
     }
 
     @GetMapping("/weather/trends")
-    public String getWeatherTrends(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                                   Model model) {
-        startDate = (startDate != null) ? startDate : LocalDate.now().minusDays(7);
-        endDate = (endDate != null) ? endDate : LocalDate.now();
-        Map<LocalDate, Map<String, Object>> trends = weatherService.getWeatherTrends(startDate, endDate);
-        model.addAttribute("startDate", startDate);
-        model.addAttribute("endDate", endDate);
-        model.addAttribute("trends", trends);
+    public String getWeatherTrends(@RequestParam(required = false, defaultValue = "temperature") String dataType, Model model) {
+        LocalDate today = LocalDate.now();
+        Map<String, Map<String, Double>> weatherData = weatherService.getWeatherDataForToday();
+        model.addAttribute("date", today);
+        model.addAttribute("weatherData", weatherData);
+        model.addAttribute("dataType", dataType);
         return "weather-trends";
     }
 
@@ -84,5 +81,21 @@ public class WeatherController {
     public ResponseEntity<String> clearAlerts() {
         weatherService.clearAlerts();
         return ResponseEntity.ok("All alerts have been cleared.");
+    }
+
+    @GetMapping({"/trends/{city}", "/weather/trends/{city}"})
+    public String getCityTrends(@PathVariable String city, Model model) {
+        if (!weatherService.isValidCity(city)) {
+            model.addAttribute("error", "Invalid city name: " + city);
+            return "error";
+        }
+        Map<String, Double> cityData = weatherService.getCityWeatherData(city);
+        if (cityData.isEmpty()) {
+            model.addAttribute("error", "No data available for: " + city);
+            return "error";
+        }
+        model.addAttribute("city", city);
+        model.addAttribute("cityData", cityData);
+        return "city-trends";
     }
 }
