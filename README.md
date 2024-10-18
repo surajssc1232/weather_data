@@ -56,13 +56,6 @@ The application should now be running on `http://localhost:8080`.
 - GET `/api/weather/alerts` - Get active weather alerts
 - GET `/api/weather/aqi` - Get Air Quality Index data for Indian metro cities
 
-## Running Tests
-
-To run the automated tests for this system, use the following command:
-
-```
-mvn test
-```
 
 ## Configuration
 
