@@ -103,6 +103,8 @@ The application should now be running on `http://localhost:8080`.
 - GET `/api/weather/trends?startDate={startDate}&endDate={endDate}` - Get weather trends for a date range
 - GET `/api/weather/alerts` - Get active weather alerts
 - GET `/api/weather/aqi` - Get Air Quality Index data for Indian metro cities
+- GET `/api/weather/trends` - Get weather trends for all Indian metro cities
+- GET `/api/weather/trends/{city}` - Get weather trends for a specific city
 
 
 ## Configuration
