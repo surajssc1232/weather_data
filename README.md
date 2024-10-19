@@ -69,11 +69,25 @@ Now that you have set up Java, Maven, and Git, you can proceed with setting up t
    ```
 
 2. Set up your API key:
-   - Create a `.env` file in the root directory of the project
+   - Sign up for a free account at OpenWeatherMap: https://home.openweathermap.org/users/sign_up
+   - After signing up, navigate to your API keys page: https://home.openweathermap.org/api_keys
+   - Generate a new API key if you don't have one already
+   - Create a `.env` file in the root directory of the project:
+     ```
+     touch .env
+     ```
+   - Open the `.env` file with your preferred text editor
    - Add your OpenWeatherMap API key to the `.env` file:
      ```
      OPENWEATHERMAP_API_KEY=your_api_key_here
      ```
+   - Save and close the `.env` file
+   - Ensure that `.env` is added to your `.gitignore` file to keep your API key secure
+   - Verify that the application can read the API key by running:
+     ```
+     grep OPENWEATHERMAP_API_KEY .env
+     ```
+   Note: Never commit your API key to version control. Keep it secret and secure.
 
 3. Build the project:
    ```
