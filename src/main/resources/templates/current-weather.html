@@ -7,46 +7,62 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: white;
             margin: 0;
             padding: 20px;
-            background-color: #f0f2f5;
         }
         .weather-card {
-            background: white;
+            background-color: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 20px;
             max-width: 600px;
             margin: 0 auto;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #61dafb;
+            font-size: 24px;
+            font-weight: normal;
+            margin: 0;
         }
         .current-time {
             font-size: 1.2em;
-            color: #666;
+            color: #888;
         }
         .main-temp {
             display: flex;
-            align-items: flex-start;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .temp-details {
-            display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 10px;
+            margin-bottom: 30px;
         }
         .temperature {
             font-size: 4em;
             font-weight: bold;
+            color: white;
+        }
+        .weather-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .weather-icon {
+            font-size: 2.5em;
+        }
+        .status-text {
+            font-size: 1.2em;
+            color: white;
         }
         .condition {
-            font-size: 1.5em;
-            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: #e0e0e0;
         }
         .details {
             display: grid;
@@ -56,37 +72,37 @@
         }
         .detail-item {
             padding: 10px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         .detail-label {
-            color: #666;
+            color: #888;
             font-size: 0.9em;
+            margin-bottom: 5px;
         }
         .detail-value {
             font-size: 1.1em;
-            font-weight: bold;
-            margin-top: 5px;
+            color: white;
         }
         .update-info {
             margin-top: 20px;
-            color: #666;
+            color: #888;
             font-size: 0.9em;
             text-align: center;
         }
-        .weather-status {
-            font-size: 1.2em;
-            margin-top: 10px;
+        .aqi-value {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 5px;
         }
-        .weather-icon {
-            font-size: 2.5em;
+        .aqi-category {
+            margin-left: 5px;
         }
-        .status-text {
-            font-weight: 500;
-            color: #333;
-        }
+        .very-good { color: #00e400; }
+        .good { color: #92d050; }
+        .fair { color: #ffff00; }
+        .poor { color: #ff9933; }
+        .very-poor { color: #cc3300; }
+        .hazardous { color: #7e0023; }
     </style>
 </head>
 <body>
@@ -97,28 +113,26 @@
         </div>
 
         <div class="main-temp">
-            <div class="temp-details">
-                <div class="temperature">
-                    <span th:text="${#numbers.formatDecimal(weatherData.temp, 1, 0)}">29</span>°C
+            <div class="temperature">
+                <span th:text="${#numbers.formatDecimal(weatherData.temp, 1, 0)}">29</span>°C
+            </div>
+            <div class="weather-status">
+                <div class="weather-icon">
+                    <span th:if="${weatherData.main == 'Clear'}">☀️</span>
+                    <span th:if="${weatherData.main == 'Clouds'}">☁️</span>
+                    <span th:if="${weatherData.main == 'Rain'}">🌧️</span>
+                    <span th:if="${weatherData.main == 'Snow'}">❄️</span>
+                    <span th:if="${weatherData.main == 'Thunderstorm'}">⛈️</span>
+                    <span th:if="${weatherData.main == 'Drizzle'}">🌦️</span>
+                    <span th:if="${weatherData.main == 'Mist' || weatherData.main == 'Fog'}">🌫️</span>
+                    <span th:if="${weatherData.main == 'Haze'}">🌫️</span>
+                    <span th:if="${weatherData.main == 'Smoke'}">💨</span>
+                    <span th:if="${weatherData.main == 'Dust'}">💨</span>
                 </div>
-                <div class="weather-status">
-                    <div class="weather-icon">
-                        <span th:if="${weatherData.main == 'Clear'}">☀️</span>
-                        <span th:if="${weatherData.main == 'Clouds'}">☁️</span>
-                        <span th:if="${weatherData.main == 'Rain'}">🌧️</span>
-                        <span th:if="${weatherData.main == 'Snow'}">❄️</span>
-                        <span th:if="${weatherData.main == 'Thunderstorm'}">⛈️</span>
-                        <span th:if="${weatherData.main == 'Drizzle'}">🌦️</span>
-                        <span th:if="${weatherData.main == 'Mist' || weatherData.main == 'Fog'}">🌫️</span>
-                        <span th:if="${weatherData.main == 'Haze'}">🌫️</span>
-                        <span th:if="${weatherData.main == 'Smoke'}">💨</span>
-                        <span th:if="${weatherData.main == 'Dust'}">💨</span>
-                    </div>
-                    <div class="status-text" th:text="${weatherData.main}">Clear</div>
-                </div>
-                <div class="condition">
-                    RealFeel® <span th:text="${#numbers.formatDecimal(weatherData.feels_like, 1, 0)}">28</span>°
-                </div>
+                <div class="status-text" th:text="${weatherData.main}">Clear</div>
+            </div>
+            <div class="condition">
+                RealFeel® <span th:text="${#numbers.formatDecimal(weatherData.feels_like, 1, 0)}">28</span>°
             </div>
         </div>
 
@@ -140,13 +154,13 @@
                 <div class="detail-value" th:if="${weatherData.aqi != null}">
                     <span th:text="${weatherData.aqi}"></span> - 
                     <span th:text="${weatherData.aqiCategory}" 
-                          th:style="${'color: ' + 
-                                   (weatherData.aqiCategory == 'Very Good' ? '#00e400' : 
-                                   (weatherData.aqiCategory == 'Good' ? '#92d050' : 
-                                   (weatherData.aqiCategory == 'Fair' ? '#ffff00' : 
-                                   (weatherData.aqiCategory == 'Poor' ? '#ff9933' : 
-                                   (weatherData.aqiCategory == 'Very Poor' ? '#cc3300' : 
-                                   '#7e0023')))))}">
+                          th:class="${'aqi-category ' + 
+                                   (weatherData.aqiCategory == 'Very Good' ? 'very-good' : 
+                                   (weatherData.aqiCategory == 'Good' ? 'good' : 
+                                   (weatherData.aqiCategory == 'Fair' ? 'fair' : 
+                                   (weatherData.aqiCategory == 'Poor' ? 'poor' : 
+                                   (weatherData.aqiCategory == 'Very Poor' ? 'very-poor' : 
+                                   'hazardous')))))}">
                     </span>
                 </div>
                 <div class="detail-value" th:if="${weatherData.aqi == null}">
