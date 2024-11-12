@@ -30,7 +30,7 @@ public class WeatherController {
     @GetMapping("/weather/{city}")
     public String getCurrentWeather(@PathVariable String city, Model model) {
         WeatherResponse response = weatherService.getWeather(city);
-        weatherService.processWeatherData(response); // Process and save the data
+        weatherService.processWeatherData(response);
 
         Map<String, Object> weatherData = new HashMap<>();
         weatherData.put("city", response.getName());
@@ -38,6 +38,17 @@ public class WeatherController {
         weatherData.put("temp", weatherService.convertKelvinToCelsius(response.getMain().getTemp()));
         weatherData.put("feels_like", weatherService.convertKelvinToCelsius(response.getMain().getFeels_like()));
         weatherData.put("timestamp", Instant.ofEpochSecond(response.getDt()).atZone(ZoneId.systemDefault()).toLocalDateTime());
+        
+        if (response.getCoord() != null) {
+            double lat = response.getCoord().getLat();
+            double lon = response.getCoord().getLon();
+            int aqi = weatherService.getAQI(lat, lon);
+            if (aqi != -1) {
+                int standardAqi = weatherService.convertToStandardAQI(aqi);
+                weatherData.put("aqi", standardAqi);
+                weatherData.put("aqiCategory", weatherService.getAQICategory(standardAqi));
+            }
+        }
 
         model.addAttribute("weatherData", weatherData);
         return "current-weather";

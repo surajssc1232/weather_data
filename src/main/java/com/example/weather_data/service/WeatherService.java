@@ -361,7 +361,7 @@ public class WeatherService {
         return data;
     }
 
-    private int convertToStandardAQI(int openWeatherMapAQI) {
+    public int convertToStandardAQI(int openWeatherMapAQI) {
         switch (openWeatherMapAQI) {
             case 1: return 16;  // Middle of Very Good (0-33)
             case 2: return 50;  // Middle of Good (34-66)
@@ -372,7 +372,7 @@ public class WeatherService {
         }
     }
 
-    private String getAQICategory(int aqi) {
+    public String getAQICategory(int aqi) {
         if (aqi <= 33) return "Very Good";
         if (aqi <= 66) return "Good";
         if (aqi <= 99) return "Fair";
@@ -399,7 +399,7 @@ public class WeatherService {
         return "Sensitive groups: Avoid all outdoor physical activities\nEveryone: Significantly cut back on outdoor physical activities";
     }
 
-    private int getAQI(double lat, double lon) {
+    public int getAQI(double lat, double lon) {
         Map<String, Object> params = new HashMap<>();
         params.put("lat", lat);
         params.put("lon", lon);
