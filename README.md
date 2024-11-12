@@ -73,9 +73,10 @@ Now that you have set up Java, Maven, and Git, you can proceed with setting up t
    - After signing up, navigate to your API keys page: https://home.openweathermap.org/api_keys
    - Generate a new API key if you don't have one already
    - Create a `.env` file in the root directory of the project:
-     ```
-     touch .env
-     ```
+     #### for unix based
+        - ```
+          touch .env
+          ```
    - Open the `.env` file with your preferred text editor
    - Add your OpenWeatherMap API key to the `.env` file:
      ```
