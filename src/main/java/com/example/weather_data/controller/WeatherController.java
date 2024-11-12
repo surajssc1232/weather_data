@@ -39,6 +39,13 @@ public class WeatherController {
         weatherData.put("feels_like", weatherService.convertKelvinToCelsius(response.getMain().getFeels_like()));
         weatherData.put("timestamp", Instant.ofEpochSecond(response.getDt()).atZone(ZoneId.systemDefault()).toLocalDateTime());
         
+        if (response.getWind() != null) {
+            weatherData.put("windSpeed", Math.round(response.getWind().getSpeed() * 3.6)); // Convert m/s to km/h
+            weatherData.put("windDirection", getWindDirection(response.getWind().getDeg()));
+            weatherData.put("windGust", response.getWind().getGust() != null ? 
+                Math.round(response.getWind().getGust() * 3.6) : null); // Convert m/s to km/h if gust exists
+        }
+        
         if (response.getCoord() != null) {
             double lat = response.getCoord().getLat();
             double lon = response.getCoord().getLon();
@@ -52,6 +59,13 @@ public class WeatherController {
 
         model.addAttribute("weatherData", weatherData);
         return "current-weather";
+    }
+
+    private String getWindDirection(double degrees) {
+        String[] directions = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", 
+                              "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"};
+        int index = (int) Math.round(((degrees % 360) / 22.5)) % 16;
+        return directions[index];
     }
 
     @GetMapping("/weather/stats")

@@ -143,11 +143,27 @@
             </div>
             <div class="detail-item">
                 <div class="detail-label">Wind</div>
-                <div class="detail-value">NNE 15 km/h</div>
+                <div class="detail-value">
+                    <span th:if="${weatherData.windDirection != null && weatherData.windSpeed != null}"
+                          th:text="${weatherData.windDirection + ' ' + weatherData.windSpeed + ' km/h'}">
+                        NNE 15 km/h
+                    </span>
+                    <span th:unless="${weatherData.windDirection != null && weatherData.windSpeed != null}">
+                        Not available
+                    </span>
+                </div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">Wind Gusts</div>
-                <div class="detail-value">29 km/h</div>
+                <div class="detail-value">
+                    <span th:if="${weatherData.windGust != null}"
+                          th:text="${weatherData.windGust + ' km/h'}">
+                        29 km/h
+                    </span>
+                    <span th:unless="${weatherData.windGust != null}">
+                        Not available
+                    </span>
+                </div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">Air Quality</div>

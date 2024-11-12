@@ -8,6 +8,7 @@ public class WeatherResponse {
     private List<WeatherData> weather; // Weather data
     private long dt; // Time of data update (Unix timestamp)
     private Coord coord; // Coordinates
+    private Wind wind;  // Add this field
 
     // Getters and Setters
 
@@ -49,6 +50,14 @@ public class WeatherResponse {
 
     public void setCoord(Coord coord) {
         this.coord = coord;
+    }
+
+    public Wind getWind() {
+        return wind;
+    }
+
+    public void setWind(Wind wind) {
+        this.wind = wind;
     }
 
     public static class MainData {
@@ -140,6 +149,36 @@ public class WeatherResponse {
 
         public void setLon(double lon) {
             this.lon = lon;
+        }
+    }
+
+    public static class Wind {
+        private double speed;
+        private double deg;
+        private Double gust;  // Optional field
+
+        public double getSpeed() {
+            return speed;
+        }
+
+        public void setSpeed(double speed) {
+            this.speed = speed;
+        }
+
+        public double getDeg() {
+            return deg;
+        }
+
+        public void setDeg(double deg) {
+            this.deg = deg;
+        }
+
+        public Double getGust() {
+            return gust;
+        }
+
+        public void setGust(Double gust) {
+            this.gust = gust;
         }
     }
 
