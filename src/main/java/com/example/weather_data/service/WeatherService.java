@@ -346,18 +346,57 @@ public class WeatherService {
                 cityData.put("temperature", convertKelvinToCelsius(weatherResponse.getMain().getTemp()));
                 cityData.put("humidity", (double) weatherResponse.getMain().getHumidity());
                 
-                // Fetch AQI data
+                // Fetch AQI data with new ranges
                 if (weatherResponse.getCoord() != null) {
                     double lat = weatherResponse.getCoord().getLat();
                     double lon = weatherResponse.getCoord().getLon();
                     int aqi = getAQI(lat, lon);
-                    cityData.put("aqi", (double) aqi);
+                    cityData.put("aqi", (double) convertToStandardAQI(aqi));
+                    cityData.put("aqiCategory", (double) getAQICategoryValue(aqi));
                 }
             }
             data.put(city, cityData);
         }
         
         return data;
+    }
+
+    private int convertToStandardAQI(int openWeatherMapAQI) {
+        switch (openWeatherMapAQI) {
+            case 1: return 16;  // Middle of Very Good (0-33)
+            case 2: return 50;  // Middle of Good (34-66)
+            case 3: return 83;  // Middle of Fair (67-99)
+            case 4: return 125; // Middle of Poor (100-149)
+            case 5: return 175; // Middle of Very Poor (150-200)
+            default: return 250; // Hazardous (200+)
+        }
+    }
+
+    private String getAQICategory(int aqi) {
+        if (aqi <= 33) return "Very Good";
+        if (aqi <= 66) return "Good";
+        if (aqi <= 99) return "Fair";
+        if (aqi <= 149) return "Poor";
+        if (aqi <= 200) return "Very Poor";
+        return "Hazardous";
+    }
+
+    private int getAQICategoryValue(int aqi) {
+        if (aqi <= 33) return 1;    // Very Good
+        if (aqi <= 66) return 2;    // Good
+        if (aqi <= 99) return 3;    // Fair
+        if (aqi <= 149) return 4;   // Poor
+        if (aqi <= 200) return 5;   // Very Poor
+        return 6;                   // Hazardous
+    }
+
+    private String getAQIHealthAdvice(int aqi) {
+        if (aqi <= 33) return "Enjoy activities";
+        if (aqi <= 66) return "Enjoy activities";
+        if (aqi <= 99) return "People unusually sensitive to air pollution: Plan strenuous outdoor activities when air quality is better";
+        if (aqi <= 149) return "Sensitive groups: Cut back or reschedule strenuous outdoor activities";
+        if (aqi <= 200) return "Sensitive groups: Avoid strenuous outdoor activities\nEveryone: Cut back or reschedule strenuous outdoor activities";
+        return "Sensitive groups: Avoid all outdoor physical activities\nEveryone: Significantly cut back on outdoor physical activities";
     }
 
     private int getAQI(double lat, double lon) {
@@ -390,7 +429,6 @@ public class WeatherService {
         if (indianMetros.contains(city) || cityMapping.containsKey(city)) {
             weatherResponse = getWeather(city);
         } else {
-            // For non-metro cities, make a direct API call
             weatherResponse = getWeatherForNonMetroCity(city);
         }
 
@@ -402,7 +440,10 @@ public class WeatherService {
                 double lat = weatherResponse.getCoord().getLat();
                 double lon = weatherResponse.getCoord().getLon();
                 int aqi = getAQI(lat, lon);
-                cityData.put("aqi", (double) aqi);
+                if (aqi != -1) {
+                    cityData.put("aqi", (double) convertToStandardAQI(aqi));
+                    cityData.put("aqiCategory", (double) getAQICategoryValue(aqi));
+                }
             }
         }
         return cityData;
