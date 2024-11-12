@@ -10,14 +10,37 @@
             background-color: #1a1a2e;
             color: white;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .city-title-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(97, 218, 251, 0.3); /* Subtle cyan border */
+        }
+        .city-title {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #61dafb;
+            text-transform: capitalize;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 0; /* Remove margin since container handles spacing */
+            text-align: center;
         }
         .weather-card {
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 20px;
+            width: 100%;
             max-width: 600px;
-            margin: 0 auto;
+            margin: 0 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .header {
@@ -106,6 +129,9 @@
     </style>
 </head>
 <body>
+    <div class="city-title-container">
+        <div class="city-title" th:text="${weatherData.city}">City Name</div>
+    </div>
     <div class="weather-card">
         <div class="header">
             <h2>CURRENT WEATHER</h2>
