@@ -1,17 +1,20 @@
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:11-jre-slim
+# Use an official Maven image with OpenJDK
+FROM maven:3.8-openjdk-11
 
-# Set the working directory in the container
-WORKDIR /
+# Set the working directory
+WORKDIR /app
 
-RUN ls -l /target
+# Copy the project files
+COPY pom.xml .
+COPY src ./src
 
-# Copy the JAR file into the container
+# Build the application
+RUN mvn clean install
+
+# Copy the JAR file from the target directory
 COPY target/weather_data-0.0.1-SNAPSHOT.jar app.jar
 
-RUN ls -l /
-
-# Make port 8080 available to the world outside this container
+# Make port 8080 available
 EXPOSE 8080
 
 # Run the JAR file
