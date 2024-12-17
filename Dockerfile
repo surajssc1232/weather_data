@@ -12,7 +12,7 @@ COPY src ./src
 RUN mvn clean install
 
 # Copy the JAR file from the target directory
-COPY target\weather_data-0.0.1-SNAPSHOT.jar app.jar
+COPY target//weather_data-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 # Make port 8080 available
