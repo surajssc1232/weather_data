@@ -76,10 +76,69 @@
             left: 0;
             right: 0;
         }
+        .city-select {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #1a1a2e;
+            color: #61dafb;
+            border: 1px solid #61dafb;
+            border-radius: 5px;
+            min-width: 200px;
+            transition: all 0.3s;
+        }
+        .city-select:hover {
+            background-color: #242442;
+        }
+        .city-select option {
+            background-color: #1a1a2e;
+            color: #61dafb;
+        }
+        .city-input {
+            display: block;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #1a1a2e;
+            color: #61dafb;
+            border: 1px solid #61dafb;
+            border-radius: 5px;
+            min-width: 200px;
+            transition: all 0.3s;
+        }
+        .city-input::placeholder {
+            color: rgba(97, 218, 251, 0.5);
+        }
+        .city-input:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(97, 218, 251, 0.5);
+        }
+        .nav-container {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 600px;
+        }
     </style>
 </head>
 <body>
     <h1>Weather Dashboard</h1>
+    <div class="nav-container">
+        <select id="citySelect" class="city-select" onchange="handleCitySelection()">
+            <option value="">Select a city...</option>
+            <option value="custom">Enter custom city</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Mumbai">Mumbai</option>
+            <option value="Chennai">Chennai</option>
+            <option value="Bengaluru">Bengaluru</option>
+            <option value="Kolkata">Kolkata</option>
+            <option value="Hyderabad">Hyderabad</option>
+        </select>
+        <input type="text" id="customCity" class="city-input" 
+               placeholder="Enter city name" 
+               style="display: none;"
+               onkeypress="handleKeyPress(event)">
+    </div>
     <div class="grid-container">
         <a href="/weather/current" class="card">
             <div class="card-icon">🌡️</div>
@@ -96,14 +155,31 @@
             <h2>Weather Alerts</h2>
             <p>Check active weather alerts and warnings</p>
         </a>
-        <a href="/weather/summary" class="card">
-            <div class="card-icon">📝</div>
-            <h2>Daily Summary</h2>
-            <p>View daily weather summaries and statistics</p>
-        </a>
     </div>
     <div class="status-bar">
         Last updated: <span th:text="${#temporals.format(lastUpdate, 'dd MMM yyyy HH:mm:ss')}">01 Jan 2024 12:00:00</span>
     </div>
+    <script>
+        function handleCitySelection() {
+            const select = document.getElementById('citySelect');
+            const customInput = document.getElementById('customCity');
+            
+            if (select.value === 'custom') {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else if (select.value) {
+                window.location.href = '/weather/' + select.value;
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                const city = event.target.value.trim();
+                if (city) {
+                    window.location.href = '/weather/' + encodeURIComponent(city);
+                }
+            }
+        }
+    </script>
 </body>
 </html>

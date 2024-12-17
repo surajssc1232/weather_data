@@ -1,23 +1,33 @@
 package com.example.weather_data.service;
 
-import com.example.weather_data.entity.DailyWeatherSummary;
-import com.example.weather_data.repository.DailyWeatherSummaryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.ResponseEntity;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.DoubleSummaryStatistics;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import org.springframework.core.env.Environment;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import com.example.weather_data.entity.DailyWeatherSummary;
+import com.example.weather_data.repository.DailyWeatherSummaryRepository;
 
 @Service
 public class WeatherService {
@@ -362,41 +372,28 @@ public class WeatherService {
     }
 
     public int convertToStandardAQI(int openWeatherMapAQI) {
-        switch (openWeatherMapAQI) {
-            case 1: return 16;  // Middle of Very Good (0-33)
-            case 2: return 50;  // Middle of Good (34-66)
-            case 3: return 83;  // Middle of Fair (67-99)
-            case 4: return 125; // Middle of Poor (100-149)
-            case 5: return 175; // Middle of Very Poor (150-200)
-            default: return 250; // Hazardous (200+)
+        // OpenWeatherMap AQI values:
+        // 1 = Good (0-50)
+        // 2 = Fair (51-100)
+        // 3 = Moderate (101-150)
+        // 4 = Poor (151-200)
+        // 5 = Very Poor (201-300)
+        // >5 = Hazardous (>300)
+        Map<Integer, int[]> aqiRanges = new HashMap<>() {{
+            put(1, new int[]{0, 50});      // Good
+            put(2, new int[]{51, 100});    // Fair
+            put(3, new int[]{101, 150});   // Moderate
+            put(4, new int[]{151, 200});   // Poor
+            put(5, new int[]{201, 300});   // Very Poor
+        }};
+
+        if (openWeatherMapAQI < 1 || openWeatherMapAQI > 5) {
+            return 301; // Hazardous
         }
-    }
 
-    public String getAQICategory(int aqi) {
-        if (aqi <= 33) return "Very Good";
-        if (aqi <= 66) return "Good";
-        if (aqi <= 99) return "Fair";
-        if (aqi <= 149) return "Poor";
-        if (aqi <= 200) return "Very Poor";
-        return "Hazardous";
-    }
-
-    private int getAQICategoryValue(int aqi) {
-        if (aqi <= 33) return 1;    // Very Good
-        if (aqi <= 66) return 2;    // Good
-        if (aqi <= 99) return 3;    // Fair
-        if (aqi <= 149) return 4;   // Poor
-        if (aqi <= 200) return 5;   // Very Poor
-        return 6;                   // Hazardous
-    }
-
-    private String getAQIHealthAdvice(int aqi) {
-        if (aqi <= 33) return "Enjoy activities";
-        if (aqi <= 66) return "Enjoy activities";
-        if (aqi <= 99) return "People unusually sensitive to air pollution: Plan strenuous outdoor activities when air quality is better";
-        if (aqi <= 149) return "Sensitive groups: Cut back or reschedule strenuous outdoor activities";
-        if (aqi <= 200) return "Sensitive groups: Avoid strenuous outdoor activities\nEveryone: Cut back or reschedule strenuous outdoor activities";
-        return "Sensitive groups: Avoid all outdoor physical activities\nEveryone: Significantly cut back on outdoor physical activities";
+        int[] range = aqiRanges.get(openWeatherMapAQI);
+        // Return the middle value of the range
+        return (range[0] + range[1]) / 2;
     }
 
     public int getAQI(double lat, double lon) {
@@ -412,14 +409,127 @@ public class WeatherService {
                 List<Map<String, Object>> list = (List<Map<String, Object>>) responseBody.get("list");
                 if (!list.isEmpty()) {
                     Map<String, Object> firstItem = list.get(0);
-                    Map<String, Object> main = (Map<String, Object>) firstItem.get("main");
-                    return (int) main.get("aqi");
+                    Map<String, Object> components = (Map<String, Object>) firstItem.get("components");
+                    
+                    // Get all pollutant values
+                    double pm2_5 = ((Number) components.get("pm2_5")).doubleValue();
+                    double pm10 = ((Number) components.get("pm10")).doubleValue();
+                    double no2 = ((Number) components.get("no2")).doubleValue();
+                    double o3 = ((Number) components.get("o3")).doubleValue();
+                    double so2 = ((Number) components.get("so2")).doubleValue();
+                    double co = ((Number) components.get("co")).doubleValue();
+                    
+                    // Calculate individual AQI for each pollutant
+                    int pm25Aqi = calculatePM25AQI(pm2_5);
+                    int pm10Aqi = calculatePM10AQI(pm10);
+                    int no2Aqi = calculateNO2AQI(no2);
+                    int o3Aqi = calculateO3AQI(o3);
+                    int so2Aqi = calculateSO2AQI(so2);
+                    int coAqi = calculateCOAQI(co);
+                    
+                    // Return the highest AQI value (worst air quality)
+                    return Math.max(Math.max(Math.max(pm25Aqi, pm10Aqi), 
+                                  Math.max(no2Aqi, o3Aqi)), 
+                                  Math.max(so2Aqi, coAqi));
                 }
             }
         } catch (Exception e) {
-            System.out.println("Error fetching AQI data: " + e.getMessage());
+            logger.error("Error fetching AQI data: " + e.getMessage());
         }
-        return -1; // Return -1 if AQI data is not available
+        return -1;
+    }
+
+    private int calculatePM25AQI(double pm25) {
+        // PM2.5 breakpoints as per EPA standards
+        if (pm25 <= 12.0) return linearScale(pm25, 0, 12.0, 0, 50);
+        if (pm25 <= 35.4) return linearScale(pm25, 12.1, 35.4, 51, 100);
+        if (pm25 <= 55.4) return linearScale(pm25, 35.5, 55.4, 101, 150);
+        if (pm25 <= 150.4) return linearScale(pm25, 55.5, 150.4, 151, 200);
+        if (pm25 <= 250.4) return linearScale(pm25, 150.5, 250.4, 201, 300);
+        if (pm25 <= 350.4) return linearScale(pm25, 250.5, 350.4, 301, 400);
+        return linearScale(pm25, 350.5, 500.4, 401, 500);
+    }
+
+    private int calculatePM10AQI(double pm10) {
+        // PM10 breakpoints
+        if (pm10 <= 54) return linearScale(pm10, 0, 54, 0, 50);
+        if (pm10 <= 154) return linearScale(pm10, 55, 154, 51, 100);
+        if (pm10 <= 254) return linearScale(pm10, 155, 254, 101, 150);
+        if (pm10 <= 354) return linearScale(pm10, 255, 354, 151, 200);
+        if (pm10 <= 424) return linearScale(pm10, 355, 424, 201, 300);
+        if (pm10 <= 504) return linearScale(pm10, 425, 504, 301, 400);
+        return linearScale(pm10, 505, 604, 401, 500);
+    }
+
+    private int calculateNO2AQI(double no2) {
+        // NO2 breakpoints (in ppb)
+        if (no2 <= 53) return linearScale(no2, 0, 53, 0, 50);
+        if (no2 <= 100) return linearScale(no2, 54, 100, 51, 100);
+        if (no2 <= 360) return linearScale(no2, 101, 360, 101, 150);
+        if (no2 <= 649) return linearScale(no2, 361, 649, 151, 200);
+        if (no2 <= 1249) return linearScale(no2, 650, 1249, 201, 300);
+        if (no2 <= 1649) return linearScale(no2, 1250, 1649, 301, 400);
+        return linearScale(no2, 1650, 2049, 401, 500);
+    }
+
+    private int calculateO3AQI(double o3) {
+        // O3 breakpoints (in ppb)
+        if (o3 <= 54) return linearScale(o3, 0, 54, 0, 50);
+        if (o3 <= 70) return linearScale(o3, 55, 70, 51, 100);
+        if (o3 <= 85) return linearScale(o3, 71, 85, 101, 150);
+        if (o3 <= 105) return linearScale(o3, 86, 105, 151, 200);
+        if (o3 <= 200) return linearScale(o3, 106, 200, 201, 300);
+        return 301; // Beyond "Hazardous" level
+    }
+
+    private int calculateSO2AQI(double so2) {
+        // SO2 breakpoints (in ppb)
+        if (so2 <= 35) return linearScale(so2, 0, 35, 0, 50);
+        if (so2 <= 75) return linearScale(so2, 36, 75, 51, 100);
+        if (so2 <= 185) return linearScale(so2, 76, 185, 101, 150);
+        if (so2 <= 304) return linearScale(so2, 186, 304, 151, 200);
+        return 201; // Beyond "Very Unhealthy" level
+    }
+
+    private int calculateCOAQI(double co) {
+        // CO breakpoints (in ppm)
+        if (co <= 4.4) return linearScale(co, 0, 4.4, 0, 50);
+        if (co <= 9.4) return linearScale(co, 4.5, 9.4, 51, 100);
+        if (co <= 12.4) return linearScale(co, 9.5, 12.4, 101, 150);
+        if (co <= 15.4) return linearScale(co, 12.5, 15.4, 151, 200);
+        return 201; // Beyond "Very Unhealthy" level
+    }
+
+    private int linearScale(double value, double bpLow, double bpHigh, int aqiLow, int aqiHigh) {
+        return (int) Math.round(((aqiHigh - aqiLow) / (bpHigh - bpLow)) * (value - bpLow) + aqiLow);
+    }
+
+    // Update AQI category ranges to match actual values
+    public String getAQICategory(int aqi) {
+        if (aqi <= 50) return "Good";
+        if (aqi <= 100) return "Moderate";
+        if (aqi <= 150) return "Unhealthy for Sensitive Groups";
+        if (aqi <= 200) return "Unhealthy";
+        if (aqi <= 300) return "Very Unhealthy";
+        return "Hazardous";
+    }
+
+    private int getAQICategoryValue(int aqi) {
+            if (aqi <= 33) return 1;    // Very Good
+            if (aqi <= 66) return 2;    // Good
+            if (aqi <= 99) return 3;    // Fair
+            if (aqi <= 149) return 4;   // Poor
+            if (aqi <= 200) return 5;   // Very Poor
+            return 6;                   // Hazardous
+    }
+
+    private String getAQIHealthAdvice(int aqi) {
+        if (aqi <= 33) return "Enjoy activities";
+        if (aqi <= 66) return "Enjoy activities";
+        if (aqi <= 99) return "People unusually sensitive to air pollution: Plan strenuous outdoor activities when air quality is better";
+        if (aqi <= 149) return "Sensitive groups: Cut back or reschedule strenuous outdoor activities";
+        if (aqi <= 200) return "Sensitive groups: Avoid strenuous outdoor activities\nEveryone: Cut back or reschedule strenuous outdoor activities";
+        return "Sensitive groups: Avoid all outdoor physical activities\nEveryone: Significantly cut back on outdoor physical activities";
     }
 
     public Map<String, Double> getCityWeatherData(String city) {
