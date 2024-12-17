@@ -2,7 +2,7 @@
 FROM openjdk:11-jre-slim
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /
 
 # Copy the JAR file into the container
 COPY target/weather_data-0.0.1-SNAPSHOT.jar app.jar
