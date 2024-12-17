@@ -1,6 +1,6 @@
 # filepath: /d:/projects/weather_data/Dockerfile
 # Use an official Maven image with OpenJDK
-FROM maven:3.8-openjdk-11 AS build
+FROM maven:3.8-openjdk-17 AS build
 
 # Set the working directory
 WORKDIR /app
@@ -13,7 +13,7 @@ COPY src ./src
 RUN mvn clean install
 
 # Use an official OpenJDK runtime as a parent image
-FROM openjdk:11-jre-slim
+FROM openjdk:17-jre-slim
 
 # Set the working directory in the container
 WORKDIR /
