@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Weather Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: #1a1a2e;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #61dafb;
+            margin-bottom: 40px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(97, 218, 251, 0.3);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(97, 218, 251, 0.2);
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(97, 218, 251, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+        .card:hover::before {
+            transform: translateX(100%);
+        }
+        .card h2 {
+            color: #61dafb;
+            margin-bottom: 15px;
+        }
+        .card p {
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .status-bar {
+            background-color: rgba(97, 218, 251, 0.1);
+            padding: 10px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+        .city-select {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #1a1a2e;
+            color: #61dafb;
+            border: 1px solid #61dafb;
+            border-radius: 5px;
+            min-width: 200px;
+            transition: all 0.3s;
+        }
+        .city-select:hover {
+            background-color: #242442;
+        }
+        .city-select option {
+            background-color: #1a1a2e;
+            color: #61dafb;
+        }
+        .city-input {
+            display: block;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #1a1a2e;
+            color: #61dafb;
+            border: 1px solid #61dafb;
+            border-radius: 5px;
+            min-width: 200px;
+            transition: all 0.3s;
+        }
+        .city-input::placeholder {
+            color: rgba(97, 218, 251, 0.5);
+        }
+        .city-input:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(97, 218, 251, 0.5);
+        }
+        .nav-container {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather Dashboard</h1>
+    <div class="nav-container">
+        <select id="citySelect" class="city-select" onchange="handleCitySelection()">
+            <option value="">Select a city...</option>
+            <option value="custom">Enter custom city</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Mumbai">Mumbai</option>
+            <option value="Chennai">Chennai</option>
+            <option value="Bengaluru">Bengaluru</option>
+            <option value="Kolkata">Kolkata</option>
+            <option value="Hyderabad">Hyderabad</option>
+        </select>
+        <input type="text" id="customCity" class="city-input" 
+               placeholder="Enter city name" 
+               style="display: none;"
+               onkeypress="handleKeyPress(event)">
+    </div>
+    <div class="grid-container">
+        <a href="/weather/current" class="card">
+            <div class="card-icon">🌡️</div>
+            <h2>Current Weather</h2>
+            <p>View real-time weather conditions for major Indian cities</p>
+        </a>
+        <a href="/weather/trends" class="card">
+            <div class="card-icon">📊</div>
+            <h2>Weather Trends</h2>
+            <p>Analyze temperature, humidity, and AQI trends</p>
+        </a>
+        <a href="/weather/alerts" class="card">
+            <div class="card-icon">⚠️</div>
+            <h2>Weather Alerts</h2>
+            <p>Check active weather alerts and warnings</p>
+        </a>
+    </div>
+    <div class="status-bar">
+        Last updated: <span th:text="${#temporals.format(lastUpdate, 'dd MMM yyyy HH:mm:ss')}">01 Jan 2024 12:00:00</span>
+    </div>
+    <script>
+        function handleCitySelection() {
+            const select = document.getElementById('citySelect');
+            const customInput = document.getElementById('customCity');
+            
+            if (select.value === 'custom') {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else if (select.value) {
+                window.location.href = '/weather/' + select.value;
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                const city = event.target.value.trim();
+                if (city) {
+                    window.location.href = '/weather/' + encodeURIComponent(city);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

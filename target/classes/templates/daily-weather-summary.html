@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Daily Weather Summary</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .city-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .city-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #61dafb;
+        }
+        .weather-info {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Daily Weather Summary for <span th:text="${#temporals.format(date, 'dd MMMM yyyy')}"></span></h1>
+        <div class="grid-container">
+            <div th:each="summary : ${summaries}" class="city-box">
+                <div class="city-name" th:text="${summary.city}"></div>
+                <div class="weather-info">Average Temperature: <span th:text="${#numbers.formatDecimal(summary.averageTemp, 1, 2)} + '°C'"></span></div>
+                <div class="weather-info">Maximum Temperature: <span th:text="${#numbers.formatDecimal(summary.maxTemp, 1, 2)} + '°C'"></span></div>
+                <div class="weather-info">Minimum Temperature: <span th:text="${#numbers.formatDecimal(summary.minTemp, 1, 2)} + '°C'"></span></div>
+                <div class="weather-info">Dominant Condition: <span th:text="${summary.dominantCondition}"></span></div>
+                <div class="weather-info">Humidity: <span th:text="${summary.humidity} + '%'"></span></div>
+                <div class="weather-info">Data Points: <span th:text="${summary.dataPointCount}"></span></div>
+            </div>
+        </div>
+        <div class="date-navigation">
+            <a th:href="@{/weather/daily-summary(date=${previousDate})}" class="btn">&lt; Previous Day</a>
+            <a th:href="@{/weather/daily-summary(date=${nextDate})}" class="btn">Next Day &gt;</a>
+        </div>
+    </div>
+    <script th:inline="javascript">
+        // Add any JavaScript for interactivity here
+    </script>
+</body>
+</html>

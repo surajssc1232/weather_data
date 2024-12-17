@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Weather Trends</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #61dafb;
+        }
+        .chart-container {
+            width: 80%;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        select {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #61dafb;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 5px;
+        }
+        .nav-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: rgba(97, 218, 251, 0.2);
+            border-radius: 5px;
+            color: #61dafb;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .nav-back:hover {
+            background-color: rgba(97, 218, 251, 0.3);
+        }
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: #61dafb;
+            color: #1a1a2e;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .home-button:hover {
+            background-color: #4fa8cc;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .chart-container {
+                width: 95%;
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+                margin: 40px 0 20px;
+            }
+            
+            select {
+                width: 90%;
+                margin: 15px auto;
+            }
+            
+            .home-button {
+                top: 10px;
+                left: 10px;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/home" class="home-button">🏠 Home</a>
+    <h1>Weather Trends for <span th:text="${#temporals.format(date, 'MMMM d, yyyy')}"></span></h1>
+    <select id="dataTypeSelect" onchange="updateChart()">
+        <option value="temperature">Temperature</option>
+        <option value="humidity">Humidity</option>
+        <option value="aqi">AQI</option>
+    </select>
+    <div class="chart-container">
+        <canvas id="weatherChart"></canvas>
+    </div>
+    <script th:inline="javascript">
+        var weatherData = /*[[${weatherData}]]*/ {};
+        var cities = Object.keys(weatherData);
+        var chart;
+        
+        var colorPalette = {
+            'Delhi': 'rgba(255, 99, 132, 0.8)',
+            'Mumbai': 'rgba(54, 162, 235, 0.8)',
+            'Chennai': 'rgba(255, 206, 86, 0.8)',
+            'Bengaluru': 'rgba(75, 192, 192, 0.8)',
+            'Kolkata': 'rgba(153, 102, 255, 0.8)',
+            'Hyderabad': 'rgba(255, 159, 64, 0.8)'
+        };
+
+        function updateChart() {
+            var dataType = document.getElementById('dataTypeSelect').value;
+            var ctx = document.getElementById('weatherChart').getContext('2d');
+            
+            var chartData = cities.map(city => ({
+                x: city,
+                y: weatherData[city][dataType]
+            }));
+
+            var maxValue = Math.max(...chartData.map(d => d.y));
+            var minValue = Math.min(...chartData.map(d => d.y));
+            var range = maxValue - minValue;
+            var padding = range * 0.1; // 10% padding for all types
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: cities,
+                    datasets: [{
+                        label: getLabel(dataType),
+                        data: chartData,
+                        backgroundColor: cities.map(city => colorPalette[city] || 'rgba(97, 218, 251, 0.7)'),
+                        borderColor: cities.map(city => 
+                            (colorPalette[city] || 'rgba(97, 218, 251, 0.7)').replace('0.8', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            suggestedMin: minValue - padding,
+                            suggestedMax: maxValue + padding,
+                            title: {
+                                display: true,
+                                text: getLabel(dataType),
+                                color: 'white'
+                            },
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${getLabel(dataType)}: ${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function getLabel(dataType) {
+            switch(dataType) {
+                case 'temperature':
+                    return 'Temperature (°C)';
+                case 'humidity':
+                    return 'Humidity (%)';
+                case 'aqi':
+                    return 'Air Quality Index';
+                default:
+                    return '';
+            }
+        }
+
+        // Initial chart creation
+        updateChart();
+    </script>
+</body>
+</html>

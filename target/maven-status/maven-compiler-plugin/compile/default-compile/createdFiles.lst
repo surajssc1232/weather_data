@@ -1,0 +1,15 @@
+com\example\weather_data\repository\DailyWeatherSummaryRepository.class
+com\example\weather_data\service\WeatherResponse$WeatherData.class
+com\example\weather_data\service\WeatherResponse.class
+com\example\weather_data\service\WeatherResponse$Wind.class
+com\example\weather_data\service\WeatherResponse$Coord.class
+com\example\weather_data\service\WeatherService$1.class
+com\example\weather_data\service\WeatherResponse$Main.class
+com\example\weather_data\exception\GlobalExceptionHandler.class
+com\example\weather_data\entity\DailyWeatherSummary.class
+com\example\weather_data\config\RestTemplateConfig.class
+com\example\weather_data\service\WeatherService$2.class
+com\example\weather_data\service\WeatherService.class
+com\example\weather_data\service\WeatherResponse$MainData.class
+com\example\weather_data\controller\WeatherController.class
+com\example\weather_data\WeatherDataApplication.class

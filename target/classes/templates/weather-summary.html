@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Weather Summary</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Add your CSS styles here */
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: #61dafb;
+            color: #1a1a2e;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .home-button:hover {
+            background-color: #4fa8cc;
+        }
+        .summary-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px auto;
+            max-width: 800px;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+                margin: 40px 0 20px;
+                padding: 0 20px;
+            }
+            
+            .summary-box {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .home-button {
+                top: 10px;
+                left: 10px;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            
+            h2 {
+                font-size: 1.2em;
+            }
+            
+            p {
+                font-size: 0.9em;
+                margin: 8px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/home" class="home-button">🏠 Home</a>
+    <h1>Daily Weather Summary for <span th:text="${date}"></span></h1>
+    <div th:each="summary : ${summaries}" class="summary-box">
+        <h2 th:text="${summary.city}"></h2>
+        <p>Average Temperature: <span th:text="${#numbers.formatDecimal(summary.averageTemp, 1, 1)}">°C</span></p>
+        <p>Max Temperature: <span th:text="${#numbers.formatDecimal(summary.maxTemp, 1, 1)}">°C</span></p>
+        <p>Min Temperature: <span th:text="${#numbers.formatDecimal(summary.minTemp, 1, 1)}">°C</span></p>
+        <p>Dominant Condition: <span th:text="${summary.dominantCondition}"></span></p>
+        <p>Humidity: <span th:text="${summary.humidity}">%</span></p>
+    </div>
+</body>
+</html>
