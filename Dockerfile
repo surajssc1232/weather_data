@@ -1,6 +1,6 @@
 # filepath: /d:/projects/weather_data/Dockerfile
-# Use an official Maven image with OpenJDK
-FROM maven:3.8-openjdk-17 AS build
+# Use Eclipse Temurin for the build stage
+FROM eclipse-temurin:17-jdk AS build
 
 # Set the working directory
 WORKDIR /app
@@ -10,10 +10,10 @@ COPY pom.xml .
 COPY src ./src
 
 # Build the application
-RUN mvn clean install
+RUN ./mvnw clean install -DskipTests
 
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:17-jre-slim
+# Use Eclipse Temurin JRE for the runtime stage
+FROM eclipse-temurin:17-jre
 
 # Set the working directory in the container
 WORKDIR /
