@@ -10,7 +10,7 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
             color: white;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -21,9 +21,9 @@
 
         .home-button {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
+            top: min(20px, 3vh);
+            left: min(20px, 3vw);
+            padding: clamp(8px, 1.5vw, 10px) clamp(15px, 2vw, 20px);
             background-color: #61dafb;
             color: #1a1a2e;
             text-decoration: none;
@@ -31,30 +31,26 @@
             font-weight: bold;
             transition: background-color 0.3s;
             z-index: 100;
-        }
-
-        .home-button:hover {
-            background-color: #4fa8cc;
+            font-size: clamp(14px, 1.5vw, 16px);
         }
 
         h1 {
             text-align: center;
             color: #61dafb;
-            margin: 20px 0 10px;
-            font-size: 2em;
+            margin: min(40px, 5vh) 0 min(20px, 3vh);
+            font-size: clamp(1.8em, 4vw, 2.5em);
             text-shadow: 0 0 10px rgba(97, 218, 251, 0.3);
         }
 
         select {
-            display: block;
-            margin: 10px auto;
+            width: min(300px, 80vw);
             padding: 12px 20px;
-            font-size: 16px;
+            font-size: clamp(14px, 2vw, 16px);
             background: #1a1a2e;
             color: #61dafb;
             border: 1px solid rgba(97, 218, 251, 0.3);
             border-radius: 10px;
-            width: 200px;
+            margin: min(10px, 2vh) auto;
             cursor: pointer;
             transition: all 0.3s;
         }
@@ -66,13 +62,12 @@
         }
 
         .chart-container {
-            width: 80%;
-            max-width: 1200px;
-            height: calc(100vh - 220px);
-            margin: 20px auto 40px;
+            width: min(90%, 1200px);
+            height: min(60vh, 600px);
+            margin: 20px auto;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
-            padding: 20px;
+            padding: clamp(15px, 3vw, 30px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(97, 218, 251, 0.1);
             backdrop-filter: blur(10px);
@@ -81,39 +76,47 @@
         }
 
         canvas {
-            flex: 1;
             width: 100% !important;
-            height: calc(100% - 20px) !important;
+            height: 100% !important;
         }
 
         @media (max-width: 768px) {
             body {
-                padding: 10px;
+                padding: min(10px, 2vw);
             }
 
             .chart-container {
                 width: 95%;
+                height: 50vh;
                 padding: 15px;
-                margin: 10px auto 30px;
-                height: calc(100vh - 180px);
+                margin: 10px auto;
             }
-            
+
             h1 {
                 font-size: 1.5em;
-                margin: 40px 0 15px;
+                margin: 30px 0 15px;
             }
-            
+
             select {
                 width: 90%;
-                max-width: 200px;
+                max-width: 250px;
                 margin: 0 auto 15px;
             }
-            
-            .home-button {
-                top: 10px;
-                left: 10px;
+        }
+
+        @media (max-height: 600px) {
+            .chart-container {
+                height: 45vh;
+                padding: 10px;
+            }
+
+            h1 {
+                margin: 15px 0 10px;
+            }
+
+            select {
                 padding: 8px 15px;
-                font-size: 14px;
+                margin: 5px auto;
             }
         }
     </style>
@@ -161,6 +164,14 @@
             var options = {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 10,
+                        top: 10,
+                        bottom: 10
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: dataType === 'aqi',
@@ -172,28 +183,11 @@
                         ticks: {
                             color: 'rgba(255, 255, 255, 0.8)',
                             font: {
-                                size: 12
+                                size: window.innerWidth < 768 ? 10 : 12
                             },
-                            callback: function(value) {
-                                if (dataType === 'aqi') {
-                                    if (value === 0) return '0 - Good';
-                                    if (value === 50) return '50 - Good';
-                                    if (value === 100) return '100 - Moderate';
-                                    if (value === 150) return '150 - Unhealthy for Sensitive Groups';
-                                    if (value === 200) return '200 - Unhealthy';
-                                    if (value === 300) return '300 - Very Unhealthy';
-                                    return value;
-                                }
-                                return value;
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: getLabel(dataType),
-                            color: 'rgba(255, 255, 255, 0.8)',
-                            font: {
-                                size: 14
-                            }
+                            maxRotation: 0,
+                            autoSkip: true,
+                            autoSkipPadding: 15
                         }
                     },
                     x: {
@@ -203,8 +197,10 @@
                         ticks: {
                             color: 'rgba(255, 255, 255, 0.8)',
                             font: {
-                                size: 12
-                            }
+                                size: window.innerWidth < 768 ? 10 : 12
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
                         }
                     }
                 },
@@ -215,8 +211,9 @@
                         labels: {
                             color: 'rgba(255, 255, 255, 0.8)',
                             font: {
-                                size: 14
-                            }
+                                size: window.innerWidth < 768 ? 12 : 14
+                            },
+                            padding: window.innerWidth < 768 ? 10 : 20
                         }
                     },
                     tooltip: {
@@ -263,90 +260,7 @@
                         maxBarThickness: 40
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 10
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: dataType === 'aqi',
-                            suggestedMin: dataType === 'aqi' ? 0 : minValue - padding,
-                            suggestedMax: dataType === 'aqi' ? 300 : maxValue + padding,
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: 'rgba(255, 255, 255, 0.8)',
-                                font: {
-                                    size: 12
-                                },
-                                callback: function(value) {
-                                    if (dataType === 'aqi') {
-                                        if (value === 0) return '0 - Good';
-                                        if (value === 50) return '50 - Good';
-                                        if (value === 100) return '100 - Moderate';
-                                        if (value === 150) return '150 - Unhealthy for Sensitive Groups';
-                                        if (value === 200) return '200 - Unhealthy';
-                                        if (value === 300) return '300 - Very Unhealthy';
-                                        return value;
-                                    }
-                                    return value;
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: getLabel(dataType),
-                                color: 'rgba(255, 255, 255, 0.8)',
-                                font: {
-                                    size: 14
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: 'rgba(255, 255, 255, 0.8)',
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                color: 'rgba(255, 255, 255, 0.8)',
-                                font: {
-                                    size: 14
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#61dafb',
-                            bodyColor: 'white',
-                            callbacks: {
-                                label: function(context) {
-                                    var value = context.parsed.y;
-                                    if (dataType === 'aqi') {
-                                        var category = getAQICategory(value);
-                                        return `US AQI: ${Math.round(value)} (${category})`;
-                                    }
-                                    return `${getLabel(dataType)}: ${value.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    }
-                }
+                options: options
             });
         }
 
@@ -388,6 +302,12 @@
         window.addEventListener('resize', function() {
             if (chart) {
                 chart.resize();
+                // Update font sizes on resize
+                chart.options.scales.y.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
+                chart.options.scales.x.ticks.font.size = window.innerWidth < 768 ? 10 : 12;
+                chart.options.plugins.legend.labels.font.size = window.innerWidth < 768 ? 12 : 14;
+                chart.options.plugins.legend.labels.padding = window.innerWidth < 768 ? 10 : 20;
+                chart.update();
             }
         });
     </script>

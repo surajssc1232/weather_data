@@ -26,7 +26,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.weather_data.entity.AQICache;
 import com.example.weather_data.entity.DailyWeatherSummary;
+import com.example.weather_data.repository.AQICacheRepository;
 import com.example.weather_data.repository.DailyWeatherSummaryRepository;
 
 @Service
@@ -69,6 +71,9 @@ public class WeatherService {
 
     @Autowired
     private DailyWeatherSummaryRepository repository;
+
+    @Autowired
+    private AQICacheRepository aqiCacheRepository;
 
     @Value("${weather.alert.temp.threshold:35.0}")
     private double tempThreshold;
@@ -389,6 +394,31 @@ public class WeatherService {
     }
 
     private int getAQIForCity(String city) {
+        // First check cache
+        Optional<AQICache> cachedAQI = aqiCacheRepository.findFirstByCityOrderByLastUpdatedDesc(city);
+        if (cachedAQI.isPresent() && cachedAQI.get().isValid()) {
+            logger.info("Using cached AQI value {} for {}", cachedAQI.get().getAqiValue(), city);
+            return cachedAQI.get().getAqiValue();
+        }
+
+        // If not in cache or expired, fetch from API
+        int aqiValue = fetchAQIFromAPI(city);
+        
+        // If API call successful, cache the result
+        if (aqiValue != -1) {
+            AQICache aqiCache = new AQICache(city, aqiValue);
+            aqiCacheRepository.save(aqiCache);
+            logger.info("Cached new AQI value {} for {}", aqiValue, city);
+        } else if (cachedAQI.isPresent()) {
+            // If API call failed but we have cached data (even if expired), use it
+            logger.info("API call failed, using expired cache value {} for {}", cachedAQI.get().getAqiValue(), city);
+            return cachedAQI.get().getAqiValue();
+        }
+        
+        return aqiValue;
+    }
+
+    private int fetchAQIFromAPI(String city) {
         // First, get the city's location details from OpenWeatherMap if it's not a mapped city
         String state = cityStateMapping.get(city);
         if (state == null) {
