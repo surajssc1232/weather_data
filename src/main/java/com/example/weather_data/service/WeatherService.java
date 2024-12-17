@@ -389,9 +389,42 @@ public class WeatherService {
     }
 
     private int getAQIForCity(String city) {
+        // First, get the city's location details from OpenWeatherMap if it's not a mapped city
+        String state = cityStateMapping.get(city);
+        if (state == null) {
+            WeatherResponse weatherResponse = getWeather(city);
+            if (weatherResponse != null && weatherResponse.getCoord() != null) {
+                // Use the coordinates to get the nearest city data from IQAir
+                try {
+                    String nearestCityUrl = String.format(
+                        "http://api.airvisual.com/v2/nearest_city?lat=%.4f&lon=%.4f&key=%s",
+                        weatherResponse.getCoord().getLat(),
+                        weatherResponse.getCoord().getLon(),
+                        iqAirKey
+                    );
+                    ResponseEntity<Map> response = restTemplate.getForEntity(nearestCityUrl, Map.class);
+                    Map<String, Object> responseBody = response.getBody();
+                    
+                    if (responseBody != null && responseBody.get("status").equals("success")) {
+                        Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
+                        Map<String, Object> current = (Map<String, Object>) data.get("current");
+                        Map<String, Object> pollution = (Map<String, Object>) current.get("pollution");
+                        
+                        int aqiValue = ((Number) pollution.get("aqius")).intValue();
+                        logger.info("Successfully retrieved AQI value {} for custom city {} using coordinates", aqiValue, city);
+                        return aqiValue;
+                    }
+                } catch (Exception e) {
+                    logger.error("Error fetching AQI data for custom city {} using coordinates: {}", city, e.getMessage());
+                }
+            }
+            return -1;
+        }
+
+        // For mapped cities, use the existing logic
         Map<String, String> params = new HashMap<>();
         params.put("city", city);
-        params.put("state", cityStateMapping.get(city));
+        params.put("state", state);
         params.put("country", "India");
         params.put("apiKey", iqAirKey);
 
