@@ -1,8 +1,0 @@
-D:\projects\weather_data\src\main\java\com\example\weather_data\config\RestTemplateConfig.java
-D:\projects\weather_data\src\main\java\com\example\weather_data\controller\WeatherController.java
-D:\projects\weather_data\src\main\java\com\example\weather_data\entity\DailyWeatherSummary.java
-D:\projects\weather_data\src\main\java\com\example\weather_data\exception\GlobalExceptionHandler.java
-D:\projects\weather_data\src\main\java\com\example\weather_data\repository\DailyWeatherSummaryRepository.java
-D:\projects\weather_data\src\main\java\com\example\weather_data\service\WeatherResponse.java
-D:\projects\weather_data\src\main\java\com\example\weather_data\service\WeatherService.java
-D:\projects\weather_data\src\main\java\com\example\weather_data\WeatherDataApplication.java
