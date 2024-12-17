@@ -34,9 +34,24 @@
             border: none;
             border-radius: 5px;
         }
+        .nav-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: rgba(97, 218, 251, 0.2);
+            border-radius: 5px;
+            color: #61dafb;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .nav-back:hover {
+            background-color: rgba(97, 218, 251, 0.3);
+        }
     </style>
 </head>
 <body>
+    <a href="/home" class="nav-back">← Back to Home</a>
     <h1>Weather Trends for <span th:text="${#temporals.format(date, 'MMMM d, yyyy')}"></span></h1>
     <select id="dataTypeSelect" onchange="updateChart()">
         <option value="temperature">Temperature</option>

@@ -1,21 +1,26 @@
 package com.example.weather_data.controller;
 
-import com.example.weather_data.entity.DailyWeatherSummary;
-import com.example.weather_data.service.WeatherResponse;
-import com.example.weather_data.service.WeatherService;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.example.weather_data.entity.DailyWeatherSummary;
+import com.example.weather_data.service.WeatherResponse;
+import com.example.weather_data.service.WeatherService;
 
 @Controller
 public class WeatherController {
@@ -25,6 +30,17 @@ public class WeatherController {
     @Autowired
     public WeatherController(WeatherService weatherService) {
         this.weatherService = weatherService;
+    }
+
+    @GetMapping({"/", "/home"})
+    public String home(Model model) {
+        model.addAttribute("lastUpdate", LocalDateTime.now());
+        return "home";
+    }
+
+    @GetMapping("/weather/current")
+    public String getCurrentWeatherRedirect() {
+        return "redirect:/weather/Delhi"; // Default to Delhi, or you can show a city selection page
     }
 
     @GetMapping("/weather/{city}")
@@ -112,8 +128,8 @@ public class WeatherController {
     public String getCityTrends(@PathVariable String city, Model model) {
         if (!weatherService.isValidCity(city)) {
             model.addAttribute("error", "Invalid city name: " + city);
-            return "error";
-        }
+        return "error";
+    }
         Map<String, Double> cityData = weatherService.getCityWeatherData(city);
         if (cityData.isEmpty()) {
             model.addAttribute("error", "No data available for: " + city);
