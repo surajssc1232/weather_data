@@ -4,8 +4,12 @@ FROM openjdk:11-jre-slim
 # Set the working directory in the container
 WORKDIR /
 
+RUN ls -l /target
+
 # Copy the JAR file into the container
-COPY weather_data/target/weather_data-0.0.1-SNAPSHOT.jar app.jar
+COPY target/weather_data-0.0.1-SNAPSHOT.jar app.jar
+
+RUN ls -l /
 
 # Make port 8080 available to the world outside this container
 EXPOSE 8080
