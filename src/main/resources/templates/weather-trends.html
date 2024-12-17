@@ -6,51 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #1a1a2e;
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
             color: white;
             margin: 0;
             padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            box-sizing: border-box;
         }
-        h1 {
-            text-align: center;
-            color: #61dafb;
-        }
-        .chart-container {
-            width: 80%;
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        select {
-            display: block;
-            margin: 20px auto;
-            padding: 10px;
-            font-size: 16px;
-            background-color: #61dafb;
-            color: #1a1a2e;
-            border: none;
-            border-radius: 5px;
-        }
-        .nav-back {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            background-color: rgba(97, 218, 251, 0.2);
-            border-radius: 5px;
-            color: #61dafb;
-            text-decoration: none;
-            transition: background-color 0.3s;
-        }
-        .nav-back:hover {
-            background-color: rgba(97, 218, 251, 0.3);
-        }
+
         .home-button {
-            position: fixed;
+            position: absolute;
             top: 20px;
             left: 20px;
             padding: 10px 20px;
@@ -60,28 +30,83 @@
             border-radius: 5px;
             font-weight: bold;
             transition: background-color 0.3s;
+            z-index: 100;
         }
+
         .home-button:hover {
             background-color: #4fa8cc;
         }
+
+        h1 {
+            text-align: center;
+            color: #61dafb;
+            margin: 20px 0 10px;
+            font-size: 2em;
+            text-shadow: 0 0 10px rgba(97, 218, 251, 0.3);
+        }
+
+        select {
+            display: block;
+            margin: 10px auto;
+            padding: 12px 20px;
+            font-size: 16px;
+            background: #1a1a2e;
+            color: #61dafb;
+            border: 1px solid rgba(97, 218, 251, 0.3);
+            border-radius: 10px;
+            width: 200px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:hover, select:focus {
+            background: #1f1f3a;
+            border-color: rgba(97, 218, 251, 0.5);
+            box-shadow: 0 0 15px rgba(97, 218, 251, 0.2);
+        }
+
+        .chart-container {
+            width: 80%;
+            max-width: 1200px;
+            height: calc(100vh - 220px);
+            margin: 20px auto 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(97, 218, 251, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        canvas {
+            flex: 1;
+            width: 100% !important;
+            height: calc(100% - 20px) !important;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
             }
-            
+
             .chart-container {
                 width: 95%;
-                padding: 10px;
+                padding: 15px;
+                margin: 10px auto 30px;
+                height: calc(100vh - 180px);
             }
             
             h1 {
                 font-size: 1.5em;
-                margin: 40px 0 20px;
+                margin: 40px 0 15px;
             }
             
             select {
                 width: 90%;
-                margin: 15px auto;
+                max-width: 200px;
+                margin: 0 auto 15px;
             }
             
             .home-button {
@@ -130,68 +155,217 @@
             var maxValue = Math.max(...chartData.map(d => d.y));
             var minValue = Math.min(...chartData.map(d => d.y));
             var range = maxValue - minValue;
-            var padding = range * 0.1; // 10% padding for all types
+            var padding = range * 0.1;
+
+            // Configure chart options based on data type
+            var options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: dataType === 'aqi',
+                        suggestedMin: dataType === 'aqi' ? 0 : minValue - padding,
+                        suggestedMax: dataType === 'aqi' ? 300 : maxValue + padding,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            font: {
+                                size: 12
+                            },
+                            callback: function(value) {
+                                if (dataType === 'aqi') {
+                                    if (value === 0) return '0 - Good';
+                                    if (value === 50) return '50 - Good';
+                                    if (value === 100) return '100 - Moderate';
+                                    if (value === 150) return '150 - Unhealthy for Sensitive Groups';
+                                    if (value === 200) return '200 - Unhealthy';
+                                    if (value === 300) return '300 - Very Unhealthy';
+                                    return value;
+                                }
+                                return value;
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: getLabel(dataType),
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#61dafb',
+                        bodyColor: 'white',
+                        callbacks: {
+                            label: function(context) {
+                                var value = context.parsed.y;
+                                if (dataType === 'aqi') {
+                                    var category = getAQICategory(value);
+                                    return `US AQI: ${Math.round(value)} (${category})`;
+                                }
+                                return `${getLabel(dataType)}: ${value.toFixed(2)}`;
+                            }
+                        }
+                    }
+                }
+            };
 
             if (chart) {
                 chart.destroy();
             }
+
+            // Get bar colors based on data type
+            var barColors = cities.map(city => {
+                if (dataType === 'aqi') {
+                    return getAQIColor(weatherData[city][dataType]);
+                }
+                return colorPalette[city] || 'rgba(97, 218, 251, 0.7)';
+            });
 
             chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: cities,
                     datasets: [{
-                        label: getLabel(dataType),
+                        label: dataType === 'aqi' ? '' : getLabel(dataType),
                         data: chartData,
-                        backgroundColor: cities.map(city => colorPalette[city] || 'rgba(97, 218, 251, 0.7)'),
-                        borderColor: cities.map(city => 
-                            (colorPalette[city] || 'rgba(97, 218, 251, 0.7)').replace('0.8', '1')),
-                        borderWidth: 1
+                        backgroundColor: barColors,
+                        borderColor: barColors.map(color => color.replace('0.8', '1')),
+                        borderWidth: 1,
+                        barThickness: 40,
+                        maxBarThickness: 40
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 10
+                        }
+                    },
                     scales: {
                         y: {
-                            beginAtZero: false,
-                            suggestedMin: minValue - padding,
-                            suggestedMax: maxValue + padding,
+                            beginAtZero: dataType === 'aqi',
+                            suggestedMin: dataType === 'aqi' ? 0 : minValue - padding,
+                            suggestedMax: dataType === 'aqi' ? 300 : maxValue + padding,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                font: {
+                                    size: 12
+                                },
+                                callback: function(value) {
+                                    if (dataType === 'aqi') {
+                                        if (value === 0) return '0 - Good';
+                                        if (value === 50) return '50 - Good';
+                                        if (value === 100) return '100 - Moderate';
+                                        if (value === 150) return '150 - Unhealthy for Sensitive Groups';
+                                        if (value === 200) return '200 - Unhealthy';
+                                        if (value === 300) return '300 - Very Unhealthy';
+                                        return value;
+                                    }
+                                    return value;
+                                }
+                            },
                             title: {
                                 display: true,
                                 text: getLabel(dataType),
-                                color: 'white'
-                            },
-                            ticks: {
-                                color: 'white'
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                font: {
+                                    size: 14
+                                }
                             }
                         },
                         x: {
-                            ticks: {
-                                color: 'white'
-                            },
                             grid: {
                                 color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                font: {
+                                    size: 12
+                                }
                             }
                         }
                     },
                     plugins: {
                         legend: {
-                            display: false
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                font: {
+                                    size: 14
+                                }
+                            }
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#61dafb',
+                            bodyColor: 'white',
                             callbacks: {
                                 label: function(context) {
-                                    return `${getLabel(dataType)}: ${context.parsed.y.toFixed(2)}`;
+                                    var value = context.parsed.y;
+                                    if (dataType === 'aqi') {
+                                        var category = getAQICategory(value);
+                                        return `US AQI: ${Math.round(value)} (${category})`;
+                                    }
+                                    return `${getLabel(dataType)}: ${value.toFixed(2)}`;
                                 }
                             }
                         }
                     }
                 }
             });
+        }
+
+        function getAQICategory(value) {
+            if (value <= 50) return 'Good';
+            if (value <= 100) return 'Moderate';
+            if (value <= 150) return 'Unhealthy for Sensitive Groups';
+            if (value <= 200) return 'Unhealthy';
+            if (value <= 300) return 'Very Unhealthy';
+            return 'Hazardous';
+        }
+
+        function getAQIColor(value) {
+            if (value <= 50) return 'rgba(0, 228, 0, 0.8)';      // Green
+            if (value <= 100) return 'rgba(255, 255, 0, 0.8)';   // Yellow
+            if (value <= 150) return 'rgba(255, 126, 0, 0.8)';   // Orange
+            if (value <= 200) return 'rgba(255, 0, 0, 0.8)';     // Red
+            if (value <= 300) return 'rgba(143, 63, 151, 0.8)';  // Purple
+            return 'rgba(126, 0, 35, 0.8)';                      // Maroon
         }
 
         function getLabel(dataType) {
@@ -209,6 +383,13 @@
 
         // Initial chart creation
         updateChart();
+
+        // Resize handler
+        window.addEventListener('resize', function() {
+            if (chart) {
+                chart.resize();
+            }
+        });
     </script>
 </body>
 </html>

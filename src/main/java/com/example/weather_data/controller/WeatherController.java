@@ -1,11 +1,8 @@
 package com.example.weather_data.controller;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,13 +15,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.example.weather_data.service.WeatherResponse;
 import com.example.weather_data.service.WeatherService;
 
 @Controller
 public class WeatherController {
 
     private final WeatherService weatherService;
+    private final List<String> indianMetros = Arrays.asList("Delhi", "Mumbai", "Chennai", "Bengaluru", "Kolkata", "Hyderabad");
 
     @Autowired
     public WeatherController(WeatherService weatherService) {
@@ -44,49 +41,27 @@ public class WeatherController {
 
     @GetMapping("/weather/{city}")
     public String getCurrentWeather(@PathVariable String city, Model model) {
-        List<String> cities = Arrays.asList("Delhi", "Mumbai", "Chennai", "Bengaluru", "Kolkata", "Hyderabad");
-        model.addAttribute("cities", cities);
-        
-        try {
-            WeatherResponse response = weatherService.getWeather(city);
-            if (response == null || response.getName() == null) {
-                model.addAttribute("error", "Invalid city name: " + city);
-                return "error";
-            }
-            
-            weatherService.processWeatherData(response);
-
-            Map<String, Object> weatherData = new HashMap<>();
-            weatherData.put("city", response.getName());
-            weatherData.put("main", response.getWeather().get(0).getMain());
-            weatherData.put("temp", weatherService.convertKelvinToCelsius(response.getMain().getTemp()));
-            weatherData.put("feels_like", weatherService.convertKelvinToCelsius(response.getMain().getFeels_like()));
-            weatherData.put("timestamp", Instant.ofEpochSecond(response.getDt()).atZone(ZoneId.systemDefault()).toLocalDateTime());
-            
-            if (response.getWind() != null) {
-                weatherData.put("windSpeed", Math.round(response.getWind().getSpeed() * 3.6)); // Convert m/s to km/h
-                weatherData.put("windDirection", getWindDirection(response.getWind().getDeg()));
-                weatherData.put("windGust", response.getWind().getGust() != null ? 
-                    Math.round(response.getWind().getGust() * 3.6) : null); // Convert m/s to km/h if gust exists
-            }
-            
-            if (response.getCoord() != null) {
-                double lat = response.getCoord().getLat();
-                double lon = response.getCoord().getLon();
-                int aqi = weatherService.getAQI(lat, lon);
-                if (aqi != -1) {
-                    int standardAqi = weatherService.convertToStandardAQI(aqi);
-                    weatherData.put("aqi", standardAqi);
-                    weatherData.put("aqiCategory", weatherService.getAQICategory(standardAqi));
-                }
-            }
-
-            model.addAttribute("weatherData", weatherData);
-            return "current-weather";
-        } catch (Exception e) {
-            model.addAttribute("error", "Unable to fetch weather data for: " + city);
-            return "error";
+        if (!weatherService.isValidCity(city)) {
+            return "redirect:/home";
         }
+
+        Map<String, Object> weatherData = weatherService.getCurrentWeatherData(city);
+        
+        model.addAttribute("city", city);
+        model.addAttribute("cities", indianMetros);
+        model.addAttribute("temperature", weatherData.get("temperature"));
+        model.addAttribute("feelsLike", weatherData.get("feelsLike"));
+        model.addAttribute("weatherCondition", weatherData.get("weatherCondition"));
+        model.addAttribute("weatherIcon", weatherData.get("weatherIcon"));
+        model.addAttribute("windSpeed", weatherData.get("windSpeed"));
+        model.addAttribute("windDirection", weatherData.get("windDirection"));
+        model.addAttribute("windGusts", weatherData.get("windGusts"));
+        model.addAttribute("aqi", weatherData.get("aqi"));
+        model.addAttribute("aqiCategory", weatherData.get("aqiCategory"));
+        model.addAttribute("currentTime", weatherData.get("currentTime"));
+        model.addAttribute("lastUpdated", weatherData.get("lastUpdated"));
+
+        return "current-weather";
     }
 
     private String getWindDirection(double degrees) {

@@ -2,181 +2,183 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Weather Dashboard</title>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: 'Space Mono', monospace;
-            background-color: #1a1a2e;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
             color: white;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            box-sizing: border-box;
+            position: relative;
         }
+
         h1 {
             text-align: center;
             color: #61dafb;
-            margin-bottom: 40px;
+            margin: min(40px, 5vh) 0 min(20px, 3vh);
+            font-size: clamp(1.8em, 4vw, 2.5em);
+            text-shadow: 0 0 10px rgba(97, 218, 251, 0.3);
         }
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .card {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-            text-decoration: none;
-            color: white;
-            position: relative;
-            overflow: hidden;
+
+        .custom-city-input {
+            width: min(300px, 80vw);
+            padding: 12px 20px;
+            font-size: clamp(14px, 2vw, 16px);
+            background: #1a1a2e;
+            color: #61dafb;
             border: 1px solid rgba(97, 218, 251, 0.3);
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(97, 218, 251, 0.2);
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(97, 218, 251, 0.1), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.5s;
-        }
-        .card:hover::before {
-            transform: translateX(100%);
-        }
-        .card h2 {
-            color: #61dafb;
-            margin-bottom: 15px;
-        }
-        .card p {
-            color: #ccc;
-            margin-bottom: 20px;
-        }
-        .card-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-        .status-bar {
-            background-color: rgba(97, 218, 251, 0.1);
-            padding: 10px;
-            text-align: center;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-        }
-        .city-select {
-            display: block;
-            margin: 20px auto;
-            padding: 10px;
-            font-size: 16px;
-            background-color: #1a1a2e;
-            color: #61dafb;
-            border: 1px solid #61dafb;
-            border-radius: 5px;
-            min-width: 200px;
+            border-radius: 10px;
+            margin-bottom: min(40px, 5vh);
             transition: all 0.3s;
         }
-        .city-select:hover {
-            background-color: #242442;
+
+        .custom-city-input:focus {
+            outline: none;
+            border-color: rgba(97, 218, 251, 0.5);
+            box-shadow: 0 0 15px rgba(97, 218, 251, 0.2);
         }
-        .city-select option {
-            background-color: #1a1a2e;
-            color: #61dafb;
-        }
-        .city-input {
-            display: block;
-            margin: 10px auto;
-            padding: 10px;
-            font-size: 16px;
-            background-color: #1a1a2e;
-            color: #61dafb;
-            border: 1px solid #61dafb;
-            border-radius: 5px;
-            min-width: 200px;
-            transition: all 0.3s;
-        }
-        .city-input::placeholder {
+
+        .custom-city-input::placeholder {
             color: rgba(97, 218, 251, 0.5);
         }
-        .city-input:focus {
-            outline: none;
-            box-shadow: 0 0 5px rgba(97, 218, 251, 0.5);
+
+        .features-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+            gap: clamp(15px, 2vw, 20px);
+            width: min(90%, 1200px);
+            padding: 0 clamp(15px, 2vw, 20px);
+            margin-bottom: auto;
         }
-        .nav-container {
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: clamp(20px, 3vw, 30px);
             text-align: center;
-            margin: 20px auto;
-            max-width: 600px;
+            border: 1px solid rgba(97, 218, 251, 0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: clamp(160px, 25vh, 200px);
+            text-decoration: none;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(97, 218, 251, 0.3);
+        }
+
+        .feature-icon {
+            font-size: clamp(1.5em, 3vw, 2em);
+            margin-bottom: clamp(10px, 2vh, 15px);
+            color: #61dafb;
+        }
+
+        .feature-title {
+            color: #61dafb;
+            font-size: clamp(1em, 2vw, 1.2em);
+            margin-bottom: clamp(8px, 1.5vh, 10px);
+        }
+
+        .feature-description {
+            color: #999;
+            font-size: clamp(0.8em, 1.5vw, 0.9em);
+            line-height: 1.4;
+        }
+
+        .last-updated {
+            position: absolute;
+            bottom: min(20px, 3vh);
+            color: #666;
+            font-size: clamp(0.7em, 1.5vw, 0.8em);
+            text-align: center;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: min(10px, 2vw);
+            }
+
+            .features-container {
+                gap: 15px;
+                padding: 0 10px;
+            }
+
+            .feature-card {
+                min-height: 140px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            h1 {
+                margin: 20px 0 15px;
+            }
+
+            .custom-city-input {
+                margin-bottom: 20px;
+            }
+
+            .feature-card {
+                min-height: 120px;
+                padding: 15px;
+            }
+
+            .feature-description {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
     <h1>Weather Dashboard</h1>
-    <div class="nav-container">
-        <select id="citySelect" class="city-select" onchange="handleCitySelection()">
-            <option value="">Select a city...</option>
-            <option value="custom">Enter custom city</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Mumbai">Mumbai</option>
-            <option value="Chennai">Chennai</option>
-            <option value="Bengaluru">Bengaluru</option>
-            <option value="Kolkata">Kolkata</option>
-            <option value="Hyderabad">Hyderabad</option>
-        </select>
-        <input type="text" id="customCity" class="city-input" 
-               placeholder="Enter city name" 
-               style="display: none;"
-               onkeypress="handleKeyPress(event)">
-    </div>
-    <div class="grid-container">
-        <a href="/weather/current" class="card">
-            <div class="card-icon">🌡️</div>
-            <h2>Current Weather</h2>
-            <p>View real-time weather conditions for major Indian cities</p>
-        </a>
-        <a href="/weather/trends" class="card">
-            <div class="card-icon">📊</div>
-            <h2>Weather Trends</h2>
-            <p>Analyze temperature, humidity, and AQI trends</p>
-        </a>
-        <a href="/weather/alerts" class="card">
-            <div class="card-icon">⚠️</div>
-            <h2>Weather Alerts</h2>
-            <p>Check active weather alerts and warnings</p>
-        </a>
-    </div>
-    <div class="status-bar">
-        Last updated: <span th:text="${#temporals.format(lastUpdate, 'dd MMM yyyy HH:mm:ss')}">01 Jan 2024 12:00:00</span>
-    </div>
-    <script>
-        function handleCitySelection() {
-            const select = document.getElementById('citySelect');
-            const customInput = document.getElementById('customCity');
-            
-            if (select.value === 'custom') {
-                customInput.style.display = 'block';
-                customInput.focus();
-            } else if (select.value) {
-                window.location.href = '/weather/' + select.value;
-            }
-        }
 
+    <input type="text" 
+           id="customCityInput" 
+           class="custom-city-input" 
+           placeholder="Enter city name"
+           onkeypress="handleKeyPress(event)">
+
+    <div class="features-container">
+        <a href="/weather/Delhi" class="feature-card">
+            <div class="feature-icon">🌡️</div>
+            <div class="feature-title">Current Weather</div>
+            <div class="feature-description">View real-time weather conditions for major Indian cities</div>
+        </a>
+        <a href="/weather/trends" class="feature-card">
+            <div class="feature-icon">📊</div>
+            <div class="feature-title">Weather Trends</div>
+            <div class="feature-description">Analyze temperature, humidity, and AQI trends</div>
+        </a>
+        <a href="/weather/alerts" class="feature-card">
+            <div class="feature-icon">⚠️</div>
+            <div class="feature-title">Weather Alerts</div>
+            <div class="feature-description">Check active weather alerts and warnings</div>
+        </a>
+    </div>
+
+    <div class="last-updated" th:text="'Last updated: ' + ${#temporals.format(lastUpdate, 'dd MMM yyyy HH:mm:ss')}">
+        Last updated: 17 Dec 2024 16:15:23
+    </div>
+
+    <script>
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
-                const city = event.target.value.trim();
-                if (city) {
-                    window.location.href = '/weather/' + encodeURIComponent(city);
+                const cityName = event.target.value.trim();
+                if (cityName) {
+                    window.location.href = '/weather/' + encodeURIComponent(cityName);
                 }
             }
         }
