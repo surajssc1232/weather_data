@@ -2,16 +2,19 @@
 # Use Maven with Eclipse Temurin for build
 FROM eclipse-temurin:17-jdk-focal
 
+# Install Maven
+RUN apt-get update && \
+    apt-get install -y maven
+
 # Set the working directory
 WORKDIR /app
 
 # Copy the project files
-COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
-RUN ./mvnw dependency:go-offline
-
+COPY pom.xml ./
 COPY src ./src
-RUN ./mvnw clean package -DskipTests
+
+# Build the application
+RUN mvn clean package -DskipTests
 
 # Make port 8080 available to the world outside this container
 EXPOSE 8080
