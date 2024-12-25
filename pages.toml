@@ -1,0 +1,4 @@
+name = "weather-data"                        # Project name
+build.command = "./mvnw clean package -DskipTests"  # Build command
+build.output = "target"                      # Output directory
+compatibility_date = "2024-01-01"            # Pages compatibility version
