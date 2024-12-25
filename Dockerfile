@@ -1,23 +1,17 @@
-# filepath: /d:/projects/weather_data/Dockerfile
-# Use Maven with Eclipse Temurin for build
-FROM eclipse-temurin:17-jdk-focal
-
-# Install Maven
-RUN apt-get update && \
-    apt-get install -y maven
-
-# Set the working directory
+# Build stage
+FROM maven:3.9.6-eclipse-temurin-17-focal AS build
 WORKDIR /app
-
-# Copy the project files
-COPY pom.xml ./
+COPY pom.xml .
 COPY src ./src
-
-# Build the application
 RUN mvn clean package -DskipTests
 
-# Make port 8080 available to the world outside this container
-EXPOSE 8080
+# Run stage
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+COPY --from=build /app/target/weather_data-0.0.1-SNAPSHOT.jar app.jar
 
-# Run the JAR file
-CMD ["java", "-jar", "target/weather_data-0.0.1-SNAPSHOT.jar"]
+# Add Spring Boot startup optimization flags
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 -XX:InitialRAMPercentage=50 -Dspring.main.lazy-initialization=true"
+
+EXPOSE 8080
+CMD java $JAVA_OPTS -jar app.jar

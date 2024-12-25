@@ -1,9 +1,0 @@
-build:
-  command: |
-    apt-get update && \
-    apt-get install -y maven && \
-    chmod +x mvnw && \
-    ./mvnw clean package -DskipTests
-  output: target
-  environment:
-    JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
