@@ -1,9 +1,0 @@
-name = "weather-data"
-compatibility_date = "2024-01-01"
-
-[build]
-command = "chmod +x build.sh && ./build.sh"
-pages_build_output_dir = "target"
-
-[build.environment]
-JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"

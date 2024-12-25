@@ -1,0 +1,10 @@
+{
+  "name": "weather-data",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "chmod +x build.sh && ./build.sh"
+  },
+  "dependencies": {
+    "weather-data": "file:"
+  }
+}
