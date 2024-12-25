@@ -1,12 +1,20 @@
 #!/bin/bash
 set -e
 
-# Install dependencies using apt-get without sudo
-apt-get update
-apt-get install -y openjdk-17-jdk maven
+# Install SDKMAN
+curl -s "https://get.sdkman.io" | bash
+source "$HOME/.sdkman/bin/sdkman-init.sh"
 
-# Set JAVA_HOME
-export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+# Install Java and Maven
+sdk install java 17.0.9-tem
+sdk install maven
+
+# Set JAVA_HOME (SDKMAN will handle this)
+echo "Using Java version:"
+java -version
+
+echo "Using Maven version:"
+mvn -version
 
 # Build the project
 mvn clean package -DskipTests 
