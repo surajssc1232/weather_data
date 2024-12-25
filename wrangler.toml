@@ -2,18 +2,10 @@ name = "weather-data"
 compatibility_date = "2024-01-01"
 
 [build]
-command = """
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash && \
-export NVM_DIR="$HOME/.nvm" && \
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
-apt-get update && \
-apt-get install -y openjdk-17-jdk maven && \
-mvn clean package -DskipTests
-"""
+command = "apt-get update && apt-get install -y openjdk-17-jdk maven && mvn clean package -DskipTests"
 
 [build.environment]
 JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
-NODE_VERSION = "16"
 
 [site]
 bucket = "target"
